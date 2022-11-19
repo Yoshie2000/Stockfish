@@ -36,6 +36,9 @@ using std::string;
 
 namespace Stockfish {
 
+int factor = 64;
+TUNE(SetRange(0, 128), factor);
+
 namespace Zobrist {
 
   Key psq[PIECE_NB][SQUARE_NB];
