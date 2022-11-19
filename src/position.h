@@ -373,10 +373,8 @@ inline int Position::rule50_count() const {
   return st->rule50;
 }
 
-extern int factor;
-
 inline int Position::rule50_average() const {
-  return (st->rule50_average * factor + st->rule50 * (128 - factor)) / 128;
+  return (st->rule50_average + st->rule50) / 2;
 }
 
 inline bool Position::opposite_bishops() const {
