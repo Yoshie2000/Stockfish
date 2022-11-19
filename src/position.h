@@ -373,8 +373,16 @@ inline int Position::rule50_count() const {
   return st->rule50;
 }
 
+namespace {
+  int avgFactor1 = 1;
+  int avgFactor2 = 2;
+  int factor1 = 1;
+  int factor2 = 2;
+  TUNE(SetRange(1, 10), avgFactor1, avgFactor2, factor1, factor2);
+}
+
 inline int Position::rule50_average() const {
-  return st->rule50_average;
+  return (st->rule50_average * avgFactor1 / avgFactor2) + (st->rule50 * factor1 / factor2);
 }
 
 inline bool Position::opposite_bishops() const {
