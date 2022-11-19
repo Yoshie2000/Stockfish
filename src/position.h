@@ -374,8 +374,7 @@ inline int Position::rule50_count() const {
 }
 
 inline int Position::rule50_average() const {
-  int quadraticFactor = st->rule50 * std::max(25, st->rule50 - 50) / 25;
-  return (st->rule50_average + quadraticFactor) / 2;
+  return (st->rule50_average + st->rule50 * st->rule50) / 2;
 }
 
 inline bool Position::opposite_bishops() const {
