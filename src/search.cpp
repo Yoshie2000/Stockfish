@@ -1118,6 +1118,11 @@ moves_loop: // When in check, search starts here
       // Step 16. Make the move
       pos.do_move(move, st, givesCheck);
 
+      if (pos.has_repeated()) { // Prune away any repetitions immediately. These are not worth looking at
+        pos.undo_move(move);
+        continue;
+      }
+
       // Step 17. Late moves reduction / extension (LMR, ~98 Elo)
       // We use various heuristics for the sons of a node after the first son has
       // been searched. In general we would like to reduce them, but there are many
