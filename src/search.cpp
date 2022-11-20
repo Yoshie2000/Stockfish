@@ -527,7 +527,7 @@ namespace {
     if (   !rootNode
         && pos.rule50_count() >= 3
         && alpha < VALUE_DRAW
-        && pos.has_game_cycle(ss->ply))
+        && (pos.has_game_cycle(ss->ply) || pos.has_repeated()))
     {
         alpha = value_draw(pos.this_thread());
         if (alpha >= beta)
@@ -1117,11 +1117,6 @@ moves_loop: // When in check, search starts here
 
       // Step 16. Make the move
       pos.do_move(move, st, givesCheck);
-
-      if (pos.has_repeated()) { // Prune away any repetitions immediately. These are not worth looking at
-        pos.undo_move(move);
-        continue;
-      }
 
       // Step 17. Late moves reduction / extension (LMR, ~98 Elo)
       // We use various heuristics for the sons of a node after the first son has
