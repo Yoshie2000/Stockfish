@@ -527,7 +527,7 @@ namespace {
     if (   !rootNode
         && pos.rule50_count() >= 3
         && alpha < VALUE_DRAW
-        && (pos.has_game_cycle(ss->ply) || pos.has_repeated()))
+        && pos.has_game_cycle(ss->ply))
     {
         alpha = value_draw(pos.this_thread());
         if (alpha >= beta)
@@ -1139,6 +1139,10 @@ moves_loop: // When in check, search starts here
           // Decrease reduction if opponent's move count is high (~1 Elo)
           if ((ss-1)->moveCount > 7)
               r--;
+
+          // Increase reduction for repetitions
+          if (pos.has_repeated())
+              r += 2;
 
           // Increase reduction for cut nodes (~3 Elo)
           if (cutNode)
