@@ -46,6 +46,7 @@ struct StateInfo {
   int    castlingRights;
   int    rule50;
   int    rule50_average;
+  int    rule50_resetCount;
   int    pliesFromNull;
   Square epSquare;
 
@@ -161,7 +162,7 @@ public:
   bool has_game_cycle(int ply) const;
   bool has_repeated() const;
   int rule50_count() const;
-  int rule50_average() const;
+  int rule50_average(bool update = false) const;
   Score psq_score() const;
   Value psq_eg_stm() const;
   Value non_pawn_material(Color c) const;
@@ -373,8 +374,13 @@ inline int Position::rule50_count() const {
   return st->rule50;
 }
 
-inline int Position::rule50_average() const {
-  return (st->rule50_average + st->rule50 * st->rule50) / 2;
+inline int Position::rule50_average(bool update) const {
+  int newAverage = (st->rule50_average * st->rule50_resetCount + st->rule50) / (st->rule50_resetCount + 1);
+  if (update) {
+    st->rule50_average = newAverage;
+    st->rule50_resetCount++;
+  }
+  return newAverage;
 }
 
 inline bool Position::opposite_bishops() const {

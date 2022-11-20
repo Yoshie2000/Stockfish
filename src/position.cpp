@@ -274,7 +274,6 @@ Position& Position::set(const string& fenStr, bool isChess960, StateInfo* si, Th
 
   // 5-6. Halfmove clock and fullmove number
   ss >> std::skipws >> st->rule50 >> gamePly;
-  st->rule50_average = st->rule50;
 
   // Convert from fullmove starting from 1 to gamePly starting from 0,
   // handle also common incorrect FEN with fullmove = 0.
@@ -775,7 +774,7 @@ void Position::do_move(Move m, StateInfo& newSt, bool givesCheck) {
       prefetch(thisThread->materialTable[st->materialKey]);
 
       // Reset rule 50 counter
-      st->rule50_average = rule50_average();
+      st->rule50_average = rule50_average(true);
       st->rule50 = 0;
   }
 
@@ -855,7 +854,7 @@ void Position::do_move(Move m, StateInfo& newSt, bool givesCheck) {
       st->pawnKey ^= Zobrist::psq[pc][from] ^ Zobrist::psq[pc][to];
 
       // Reset rule 50 draw counter
-      st->rule50_average = rule50_average();
+      st->rule50_average = rule50_average(true);
       st->rule50 = 0;
   }
 
