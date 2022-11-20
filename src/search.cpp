@@ -1140,10 +1140,6 @@ moves_loop: // When in check, search starts here
           if ((ss-1)->moveCount > 7)
               r--;
 
-          // Increase reduction for repetitions
-          if (pos.has_repeated())
-              r += 2;
-
           // Increase reduction for cut nodes (~3 Elo)
           if (cutNode)
               r += 2;
