@@ -159,7 +159,7 @@ namespace Trace {
 
   Score scores[TERM_NB][COLOR_NB];
 
-  double to_cp(Value v) { return double(v) / UCI::NormalizeToPawnValue; }
+  double to_cp(Value v) { return double(v) / PawnValueEg; }
 
   void add(int idx, Color c, Score s) {
     scores[idx][c] = s;
@@ -1085,7 +1085,7 @@ Value Eval::evaluate(const Position& pos, int* complexity) {
   }
 
   // Damp down the evaluation when shuffling
-  v = (-v * pos.rule50_average() * 256 / 111) / 256 + v;
+  v = v * (195 - pos.rule50_average()) / 211;
 
   // Guarantee evaluation does not hit the tablebase range
   v = std::clamp(v, VALUE_TB_LOSS_IN_MAX_PLY + 1, VALUE_TB_WIN_IN_MAX_PLY - 1);
