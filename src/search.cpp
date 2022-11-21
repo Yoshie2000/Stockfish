@@ -527,7 +527,7 @@ namespace {
     if (   !rootNode
         && pos.rule50_count() >= 3
         && alpha < VALUE_DRAW
-        && pos.has_game_cycle(ss->ply))
+        && (pos.has_repeated() || pos.has_game_cycle(ss->ply)))
     {
         alpha = value_draw(pos.this_thread());
         if (alpha >= beta)
