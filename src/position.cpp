@@ -775,6 +775,7 @@ void Position::do_move(Move m, StateInfo& newSt, bool givesCheck) {
 
       // Reset rule 50 counter
       st->rule50 = 0;
+      st->repetitionSinceLastReset = false;
   }
 
   // Update hash key
@@ -854,6 +855,7 @@ void Position::do_move(Move m, StateInfo& newSt, bool givesCheck) {
 
       // Reset rule 50 draw counter
       st->rule50 = 0;
+      st->repetitionSinceLastReset = false;
   }
 
   // Set capture piece
@@ -888,6 +890,8 @@ void Position::do_move(Move m, StateInfo& newSt, bool givesCheck) {
           }
       }
   }
+  if (st->repetition)
+      st->repetitionSinceLastReset = true;
 
   assert(pos_is_ok());
 }
@@ -1023,6 +1027,7 @@ void Position::do_null_move(StateInfo& newSt) {
   set_check_info(st);
 
   st->repetition = 0;
+  st->repetitionSinceLastReset = false;
 
   assert(pos_is_ok());
 }
@@ -1186,17 +1191,7 @@ bool Position::is_draw(int ply) const {
 // of positions since the last capture or pawn move.
 
 bool Position::has_repeated() const {
-
-    StateInfo* stc = st;
-    int end = std::min(st->rule50, st->pliesFromNull);
-    while (end-- >= 4)
-    {
-        if (stc->repetition)
-            return true;
-
-        stc = stc->previous;
-    }
-    return false;
+    return st->repetitionSinceLastReset;
 }
 
 
