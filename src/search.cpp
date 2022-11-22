@@ -1139,9 +1139,9 @@ moves_loop: // When in check, search starts here
           // If 50 move rule is high or we've had a repetition, decrease reduction for moves that reset the 50 move rule. Increase otherwise
           if (pos.rule50_count() > 50) {
               if (pos.capture(move) || type_of(movedPiece) == PAWN)
-                  r -= 2;
+                  r -= 3;
               else
-                  r += 2;
+                  r += 3;
           }
 
           // Decrease reduction if opponent's move count is high (~1 Elo)
