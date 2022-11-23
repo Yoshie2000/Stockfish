@@ -61,6 +61,14 @@ namespace {
   // Different node types, used as a template parameter
   enum NodeType { NonPV, PV, Root };
 
+  int factor1 = 12;
+  int summand1 = 282;
+  int summand2 = 349;
+  int cap = 1594;
+  TUNE(SetRange(1, 20), factor1);
+  TUNE(SetRange(50, 500), summand1, summand2);
+  TUNE(SetRange(500, 3000), cap);
+
   // Futility margin
   Value futility_margin(Depth d, bool improving) {
     return Value(165 * (d - improving));
@@ -81,7 +89,7 @@ namespace {
 
   // History and stats update bonus, based on depth
   int stat_bonus(Depth d) {
-    return std::min((12 * d + 282) * d - 349 , 1594);
+    return std::min((factor1 * d + summand1) * d - summand2 , cap);
   }
 
   // Add a small random component to draw evaluations to avoid 3-fold blindness
