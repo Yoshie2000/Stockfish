@@ -58,6 +58,32 @@ using namespace Search;
 
 namespace {
 
+  int lfllmr[19]       = { 0, 0, 2, 2, 2, 2, 2, 1, 1, 1, 2, 2, 2, 2, 2, 2, 1, 1, 2};
+  int mvlmr[19]        = { 0, 0, 1, 0, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1};
+  int cnlmr[19]        = { 0, 0, 1, 1, 0, 1, 1, 2, 1, 1, 2, 2, 1, 2, 2, 1, 1, 2, 2};
+  int ttclmr[19]       = { 0, 0, 0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0};
+  int pvlmr[19]        = { 0, 0, 1, 2, 1, 1, 1, 2, 1, 1, 2, 1, 2, 0, 0, 1, 1, 1, 1};
+  int sqlmr[19]        = { 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0};
+  int threatlmr[19]    = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0};
+  int ccntlmr[19]      = { 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1};
+  int mvcntlmr[19]     = { 0, 0, 10, 7, 1, 10, 12, 4, 7, 5, 6, 2, 10, 3, 3, 6, 2, 9, 7};
+  int cutcntlmr[19]    = { 0, 0, 4, 0, 3, 2, 2, 1, 3, 3, 4, 3, 0, 4, 2, 3, 2, 3, 2};
+  int statscorelmr[19] = { 0, 0, 8561, 4239, 4796, 2881, 3415, 4454, 670, 5999, 7956, -2634, 3838, 4028, -1541, 3614, 7507, 9017, 10066};
+  int statlmr[19]      = { 0, 0, 8613, 26532, 14746, 8617, 13665, 10781, 9613, 17125, 25005, 12945, 22985, 27984, 16586, 15259, 21484, 30989, 16686};
+
+  int lflconst = 1;
+  int mvconst = 0;
+  int cnconst = 1;
+  int ttcconst = 0;
+  int pvconst = 0;
+  int sqconst = 1;
+  int threatconst = 1;
+  int ccntconst = 1;
+  int mvcntconst = 10;
+  int cutcntconst = 1;
+  int statscoreconst = 2329;
+  int statconst = 11568;
+
   // Different node types, used as a template parameter
   enum NodeType { NonPV, PV, Root };
 
@@ -1134,45 +1160,44 @@ moves_loop: // When in check, search starts here
           // and node is not likely to fail low. (~3 Elo)
           if (   ss->ttPv
               && !likelyFailLow)
-              r -= 2;
+              r -= depth <= 19 ? lfllmr[depth] : lflconst;
 
           // Decrease reduction if opponent's move count is high (~1 Elo)
-          if ((ss-1)->moveCount > 7)
-              r--;
+          if ((ss-1)->moveCount > (depth <= 19 ? mvcntlmr[depth] : mvcntconst))
+              r -= depth <= 19 ? mvlmr[depth] : mvconst;
 
           // Increase reduction for cut nodes (~3 Elo)
           if (cutNode)
-              r += 2;
+              r += depth <= 19 ? cnlmr[depth] : cnconst;
 
           // Increase reduction if ttMove is a capture (~3 Elo)
           if (ttCapture)
-              r++;
+              r += depth <= 19 ? ttclmr[depth] : ttcconst;
 
           // Decrease reduction for PvNodes based on depth
           if (PvNode)
-              r -= 1 + 11 / (3 + depth);
+              r -= depth <= 19 ? pvlmr[depth] : pvconst;
 
           // Decrease reduction if ttMove has been singularly extended (~1 Elo)
           if (singularQuietLMR)
-              r--;
+              r -= -= depth <= 19 ? sqlmr[depth] : sqconst;
 
           // Dicrease reduction if we move a threatened piece (~1 Elo)
-          if (   depth > 9
-              && (mp.threatenedPieces & from_sq(move)))
-              r--;
+          if ((mp.threatenedPieces & from_sq(move)))
+              r -= depth <= 19 ? threatlmr[depth] : threatconst;
 
           // Increase reduction if next ply has a lot of fail high
-          if ((ss+1)->cutoffCnt > 3 && !PvNode)
-              r++;
+          if ((ss+1)->cutoffCnt > (depth <= 19 ? cutcntlmr[depth] : cutcntconst) && !PvNode)
+              r += depth <= 19 ? ccntlmr[depth] : ccntconst;
 
           ss->statScore =  2 * thisThread->mainHistory[us][from_to(move)]
                          + (*contHist[0])[movedPiece][to_sq(move)]
                          + (*contHist[1])[movedPiece][to_sq(move)]
                          + (*contHist[3])[movedPiece][to_sq(move)]
-                         - 4433;
+                         - (depth <= 19 ?  statscorelmr[depth] : statscoreconst);
 
           // Decrease/increase reduction for moves with a good/bad history (~30 Elo)
-          r -= ss->statScore / (13628 + 4000 * (depth > 7 && depth < 19));
+          r -= ss->statScore / ((depth <= 19 ? statlmr[depth] : statconst) + 4000 * (depth > 7 && depth < 19));
 
           // In general we want to cap the LMR depth search at newDepth, but when
           // reduction is negative, we allow this move a limited search extension
