@@ -1160,44 +1160,44 @@ moves_loop: // When in check, search starts here
           // and node is not likely to fail low. (~3 Elo)
           if (   ss->ttPv
               && !likelyFailLow)
-              r -= depth <= 19 ? lfllmr[depth] : lflconst;
+              r -= depth < 19 ? lfllmr[depth] : lflconst;
 
           // Decrease reduction if opponent's move count is high (~1 Elo)
-          if ((ss-1)->moveCount > (depth <= 19 ? mvcntlmr[depth] : mvcntconst))
-              r -= depth <= 19 ? mvlmr[depth] : mvconst;
+          if ((ss-1)->moveCount > (depth < 19 ? mvcntlmr[depth] : mvcntconst))
+              r -= depth < 19 ? mvlmr[depth] : mvconst;
 
           // Increase reduction for cut nodes (~3 Elo)
           if (cutNode)
-              r += depth <= 19 ? cnlmr[depth] : cnconst;
+              r += depth < 19 ? cnlmr[depth] : cnconst;
 
           // Increase reduction if ttMove is a capture (~3 Elo)
           if (ttCapture)
-              r += depth <= 19 ? ttclmr[depth] : ttcconst;
+              r += depth < 19 ? ttclmr[depth] : ttcconst;
 
           // Decrease reduction for PvNodes based on depth
           if (PvNode)
-              r -= depth <= 19 ? pvlmr[depth] : pvconst;
+              r -= depth < 19 ? pvlmr[depth] : pvconst;
 
           // Decrease reduction if ttMove has been singularly extended (~1 Elo)
           if (singularQuietLMR)
-              r -= depth <= 19 ? sqlmr[depth] : sqconst;
+              r -= depth < 19 ? sqlmr[depth] : sqconst;
 
           // Dicrease reduction if we move a threatened piece (~1 Elo)
           if ((mp.threatenedPieces & from_sq(move)))
-              r -= depth <= 19 ? threatlmr[depth] : threatconst;
+              r -= depth < 19 ? threatlmr[depth] : threatconst;
 
           // Increase reduction if next ply has a lot of fail high
-          if ((ss+1)->cutoffCnt > (depth <= 19 ? cutcntlmr[depth] : cutcntconst) && !PvNode)
-              r += depth <= 19 ? ccntlmr[depth] : ccntconst;
+          if ((ss+1)->cutoffCnt > (depth < 19 ? cutcntlmr[depth] : cutcntconst) && !PvNode)
+              r += depth < 19 ? ccntlmr[depth] : ccntconst;
 
           ss->statScore =  2 * thisThread->mainHistory[us][from_to(move)]
                          + (*contHist[0])[movedPiece][to_sq(move)]
                          + (*contHist[1])[movedPiece][to_sq(move)]
                          + (*contHist[3])[movedPiece][to_sq(move)]
-                         - (depth <= 19 ?  statscorelmr[depth] : statscoreconst);
+                         - (depth < 19 ?  statscorelmr[depth] : statscoreconst);
 
           // Decrease/increase reduction for moves with a good/bad history (~30 Elo)
-          r -= ss->statScore / ((depth <= 19 ? statlmr[depth] : statconst) + 4000 * (depth > 7 && depth < 19));
+          r -= ss->statScore / ((depth < 19 ? statlmr[depth] : statconst) + 4000 * (depth > 7 && depth < 19));
 
           // In general we want to cap the LMR depth search at newDepth, but when
           // reduction is negative, we allow this move a limited search extension
