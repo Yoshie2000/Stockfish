@@ -1180,7 +1180,7 @@ moves_loop: // When in check, search starts here
 
           // Decrease reduction if ttMove has been singularly extended (~1 Elo)
           if (singularQuietLMR)
-              r -= -= depth <= 19 ? sqlmr[depth] : sqconst;
+              r -= depth <= 19 ? sqlmr[depth] : sqconst;
 
           // Dicrease reduction if we move a threatened piece (~1 Elo)
           if ((mp.threatenedPieces & from_sq(move)))
