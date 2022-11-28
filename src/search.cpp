@@ -58,31 +58,31 @@ using namespace Search;
 
 namespace {
 
-  int lfllmr[19]       = { 0, 0, 2, 2, 2, 2, 2, 1, 1, 1, 2, 2, 2, 2, 2, 2, 1, 1, 2};
-  int mvlmr[19]        = { 0, 0, 1, 0, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1};
-  int cnlmr[19]        = { 0, 0, 1, 1, 0, 1, 1, 2, 1, 1, 2, 2, 1, 2, 2, 1, 1, 2, 2};
-  int ttclmr[19]       = { 0, 0, 0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0};
-  int pvlmr[19]        = { 0, 0, 1, 2, 1, 1, 1, 2, 1, 1, 2, 1, 2, 0, 0, 1, 1, 1, 1};
-  int sqlmr[19]        = { 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0};
-  int threatlmr[19]    = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0};
-  int ccntlmr[19]      = { 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1};
-  int mvcntlmr[19]     = { 0, 0, 10, 7, 1, 10, 12, 4, 7, 5, 6, 2, 10, 3, 3, 6, 2, 9, 7};
-  int cutcntlmr[19]    = { 0, 0, 4, 0, 3, 2, 2, 1, 3, 3, 4, 3, 0, 4, 2, 3, 2, 3, 2};
-  int statscorelmr[19] = { 0, 0, 8561, 4239, 4796, 2881, 3415, 4454, 670, 5999, 7956, -2634, 3838, 4028, -1541, 3614, 7507, 9017, 10066};
-  int statlmr[19]      = { 0, 0, 8613, 26532, 14746, 8617, 13665, 10781, 9613, 17125, 25005, 12945, 22985, 27984, 16586, 15259, 21484, 30989, 16686};
+  const int lfllmr[19]       = { 0, 0, 2, 2, 2, 2, 2, 1, 1, 1, 2, 2, 2, 2, 2, 2, 1, 1, 2};
+  const int mvlmr[19]        = { 0, 0, 1, 0, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1};
+  const int cnlmr[19]        = { 0, 0, 1, 1, 0, 1, 1, 2, 1, 1, 2, 2, 1, 2, 2, 1, 1, 2, 2};
+  const int ttclmr[19]       = { 0, 0, 0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0};
+  const int pvlmr[19]        = { 0, 0, 1, 2, 1, 1, 1, 2, 1, 1, 2, 1, 2, 0, 0, 1, 1, 1, 1};
+  const int sqlmr[19]        = { 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0};
+  const int threatlmr[19]    = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0};
+  const int ccntlmr[19]      = { 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1};
+  const int mvcntlmr[19]     = { 0, 0, 10, 7, 1, 10, 12, 4, 7, 5, 6, 2, 10, 3, 3, 6, 2, 9, 7};
+  const int cutcntlmr[19]    = { 0, 0, 4, 0, 3, 2, 2, 1, 3, 3, 4, 3, 0, 4, 2, 3, 2, 3, 2};
+  const int statscorelmr[19] = { 0, 0, 8561, 4239, 4796, 2881, 3415, 4454, 670, 5999, 7956, -2634, 3838, 4028, -1541, 3614, 7507, 9017, 10066};
+  const int statlmr[19]      = { 0, 0, 8613, 26532, 14746, 8617, 13665, 10781, 9613, 17125, 25005, 12945, 22985, 27984, 16586, 15259, 21484, 30989, 16686};
 
-  int lflconst = 1;
-  int mvconst = 0;
-  int cnconst = 1;
-  int ttcconst = 0;
-  int pvconst = 0;
-  int sqconst = 1;
-  int threatconst = 1;
-  int ccntconst = 1;
-  int mvcntconst = 10;
-  int cutcntconst = 1;
-  int statscoreconst = 2329;
-  int statconst = 11568;
+  const int lflconst = 1;
+  const int mvconst = 0;
+  const int cnconst = 1;
+  const int ttcconst = 0;
+  const int pvconst = 0;
+  const int sqconst = 1;
+  const int threatconst = 1;
+  const int ccntconst = 1;
+  const int mvcntconst = 10;
+  const int cutcntconst = 1;
+  const int statscoreconst = 2329;
+  const int statconst = 11568;
 
   // Different node types, used as a template parameter
   enum NodeType { NonPV, PV, Root };
@@ -1159,45 +1159,312 @@ moves_loop: // When in check, search starts here
           // Decrease reduction if position is or has been on the PV
           // and node is not likely to fail low. (~3 Elo)
           if (   ss->ttPv
-              && !likelyFailLow)
-              r -= depth < 19 ? lfllmr[depth] : lflconst;
+              && !likelyFailLow) {
+                switch (depth) {
+                    case 0: r -= lfllmr[0]; break;
+                    case 1: r -= lfllmr[1]; break;
+                    case 2: r -= lfllmr[2]; break;
+                    case 3: r -= lfllmr[3]; break;
+                    case 4: r -= lfllmr[4]; break;
+                    case 5: r -= lfllmr[5]; break;
+                    case 6: r -= lfllmr[6]; break;
+                    case 7: r -= lfllmr[7]; break;
+                    case 8: r -= lfllmr[8]; break;
+                    case 9: r -= lfllmr[9]; break;
+                    case 10: r -= lfllmr[10]; break;
+                    case 11: r -= lfllmr[11]; break;
+                    case 12: r -= lfllmr[12]; break;
+                    case 13: r -= lfllmr[13]; break;
+                    case 14: r -= lfllmr[14]; break;
+                    case 15: r -= lfllmr[15]; break;
+                    case 16: r -= lfllmr[16]; break;
+                    case 17: r -= lfllmr[17]; break;
+                    case 18: r -= lfllmr[18]; break;
+                    default: r -= lflconst;
+                }
+          }
+              
 
           // Decrease reduction if opponent's move count is high (~1 Elo)
-          if ((ss-1)->moveCount > (depth < 19 ? mvcntlmr[depth] : mvcntconst))
-              r -= depth < 19 ? mvlmr[depth] : mvconst;
+          int moveCountThreshold = mvcntconst;
+          switch (depth) {
+                case 0: moveCountThreshold = mvcntlmr[0]; break;
+                case 1: moveCountThreshold = mvcntlmr[1]; break;
+                case 2: moveCountThreshold = mvcntlmr[2]; break;
+                case 3: moveCountThreshold = mvcntlmr[3]; break;
+                case 4: moveCountThreshold = mvcntlmr[4]; break;
+                case 5: moveCountThreshold = mvcntlmr[5]; break;
+                case 6: moveCountThreshold = mvcntlmr[6]; break;
+                case 7: moveCountThreshold = mvcntlmr[7]; break;
+                case 8: moveCountThreshold = mvcntlmr[8]; break;
+                case 9: moveCountThreshold = mvcntlmr[9]; break;
+                case 10: moveCountThreshold = mvcntlmr[10]; break;
+                case 11: moveCountThreshold = mvcntlmr[11]; break;
+                case 12: moveCountThreshold = mvcntlmr[12]; break;
+                case 13: moveCountThreshold = mvcntlmr[13]; break;
+                case 14: moveCountThreshold = mvcntlmr[14]; break;
+                case 15: moveCountThreshold = mvcntlmr[15]; break;
+                case 16: moveCountThreshold = mvcntlmr[16]; break;
+                case 17: moveCountThreshold = mvcntlmr[17]; break;
+                case 18: moveCountThreshold = mvcntlmr[18]; break;
+            }
+          if ((ss-1)->moveCount > moveCountThreshold) {
+            switch (depth) {
+                case 0: r -= mvlmr[0]; break;
+                case 1: r -= mvlmr[1]; break;
+                case 2: r -= mvlmr[2]; break;
+                case 3: r -= mvlmr[3]; break;
+                case 4: r -= mvlmr[4]; break;
+                case 5: r -= mvlmr[5]; break;
+                case 6: r -= mvlmr[6]; break;
+                case 7: r -= mvlmr[7]; break;
+                case 8: r -= mvlmr[8]; break;
+                case 9: r -= mvlmr[9]; break;
+                case 10: r -= mvlmr[10]; break;
+                case 11: r -= mvlmr[11]; break;
+                case 12: r -= mvlmr[12]; break;
+                case 13: r -= mvlmr[13]; break;
+                case 14: r -= mvlmr[14]; break;
+                case 15: r -= mvlmr[15]; break;
+                case 16: r -= mvlmr[16]; break;
+                case 17: r -= mvlmr[17]; break;
+                case 18: r -= mvlmr[18]; break;
+                default: r -= mvconst;
+            }
+          }
 
           // Increase reduction for cut nodes (~3 Elo)
-          if (cutNode)
-              r += depth < 19 ? cnlmr[depth] : cnconst;
+          if (cutNode) {
+            switch (depth) {
+                case 0: r += cnlmr[0]; break;
+                case 1: r += cnlmr[1]; break;
+                case 2: r += cnlmr[2]; break;
+                case 3: r += cnlmr[3]; break;
+                case 4: r += cnlmr[4]; break;
+                case 5: r += cnlmr[5]; break;
+                case 6: r += cnlmr[6]; break;
+                case 7: r += cnlmr[7]; break;
+                case 8: r += cnlmr[8]; break;
+                case 9: r += cnlmr[9]; break;
+                case 10: r += cnlmr[10]; break;
+                case 11: r += cnlmr[11]; break;
+                case 12: r += cnlmr[12]; break;
+                case 13: r += cnlmr[13]; break;
+                case 14: r += cnlmr[14]; break;
+                case 15: r += cnlmr[15]; break;
+                case 16: r += cnlmr[16]; break;
+                case 17: r += cnlmr[17]; break;
+                case 18: r += cnlmr[18]; break;
+                default: r += cnconst;
+            }
+          }
 
           // Increase reduction if ttMove is a capture (~3 Elo)
-          if (ttCapture)
-              r += depth < 19 ? ttclmr[depth] : ttcconst;
+          if (ttCapture) {
+            switch (depth) {
+                case 0: r += ttclmr[0]; break;
+                case 1: r += ttclmr[1]; break;
+                case 2: r += ttclmr[2]; break;
+                case 3: r += ttclmr[3]; break;
+                case 4: r += ttclmr[4]; break;
+                case 5: r += ttclmr[5]; break;
+                case 6: r += ttclmr[6]; break;
+                case 7: r += ttclmr[7]; break;
+                case 8: r += ttclmr[8]; break;
+                case 9: r += ttclmr[9]; break;
+                case 10: r += ttclmr[10]; break;
+                case 11: r += ttclmr[11]; break;
+                case 12: r += ttclmr[12]; break;
+                case 13: r += ttclmr[13]; break;
+                case 14: r += ttclmr[14]; break;
+                case 15: r += ttclmr[15]; break;
+                case 16: r += ttclmr[16]; break;
+                case 17: r += ttclmr[17]; break;
+                case 18: r += ttclmr[18]; break;
+                default: r += ttcconst;
+            }
+          }
 
           // Decrease reduction for PvNodes based on depth
-          if (PvNode)
-              r -= depth < 19 ? pvlmr[depth] : pvconst;
+          if (PvNode) {
+            switch (depth) {
+                case 0: r -= pvlmr[0]; break;
+                case 1: r -= pvlmr[1]; break;
+                case 2: r -= pvlmr[2]; break;
+                case 3: r -= pvlmr[3]; break;
+                case 4: r -= pvlmr[4]; break;
+                case 5: r -= pvlmr[5]; break;
+                case 6: r -= pvlmr[6]; break;
+                case 7: r -= pvlmr[7]; break;
+                case 8: r -= pvlmr[8]; break;
+                case 9: r -= pvlmr[9]; break;
+                case 10: r -= pvlmr[10]; break;
+                case 11: r -= pvlmr[11]; break;
+                case 12: r -= pvlmr[12]; break;
+                case 13: r -= pvlmr[13]; break;
+                case 14: r -= pvlmr[14]; break;
+                case 15: r -= pvlmr[15]; break;
+                case 16: r -= pvlmr[16]; break;
+                case 17: r -= pvlmr[17]; break;
+                case 18: r -= pvlmr[18]; break;
+                default: r -= pvconst;
+            }
+          }
 
           // Decrease reduction if ttMove has been singularly extended (~1 Elo)
-          if (singularQuietLMR)
-              r -= depth < 19 ? sqlmr[depth] : sqconst;
+          if (singularQuietLMR) {
+            switch (depth) {
+                case 0: r -= sqlmr[0]; break;
+                case 1: r -= sqlmr[1]; break;
+                case 2: r -= sqlmr[2]; break;
+                case 3: r -= sqlmr[3]; break;
+                case 4: r -= sqlmr[4]; break;
+                case 5: r -= sqlmr[5]; break;
+                case 6: r -= sqlmr[6]; break;
+                case 7: r -= sqlmr[7]; break;
+                case 8: r -= sqlmr[8]; break;
+                case 9: r -= sqlmr[9]; break;
+                case 10: r -= sqlmr[10]; break;
+                case 11: r -= sqlmr[11]; break;
+                case 12: r -= sqlmr[12]; break;
+                case 13: r -= sqlmr[13]; break;
+                case 14: r -= sqlmr[14]; break;
+                case 15: r -= sqlmr[15]; break;
+                case 16: r -= sqlmr[16]; break;
+                case 17: r -= sqlmr[17]; break;
+                case 18: r -= sqlmr[18]; break;
+                default: r -= sqconst;
+            }
+          }
 
           // Dicrease reduction if we move a threatened piece (~1 Elo)
-          if ((mp.threatenedPieces & from_sq(move)))
-              r -= depth < 19 ? threatlmr[depth] : threatconst;
+          if ((mp.threatenedPieces & from_sq(move))) {
+            switch (depth) {
+                case 0: r -= threatlmr[0]; break;
+                case 1: r -= threatlmr[1]; break;
+                case 2: r -= threatlmr[2]; break;
+                case 3: r -= threatlmr[3]; break;
+                case 4: r -= threatlmr[4]; break;
+                case 5: r -= threatlmr[5]; break;
+                case 6: r -= threatlmr[6]; break;
+                case 7: r -= threatlmr[7]; break;
+                case 8: r -= threatlmr[8]; break;
+                case 9: r -= threatlmr[9]; break;
+                case 10: r -= threatlmr[10]; break;
+                case 11: r -= threatlmr[11]; break;
+                case 12: r -= threatlmr[12]; break;
+                case 13: r -= threatlmr[13]; break;
+                case 14: r -= threatlmr[14]; break;
+                case 15: r -= threatlmr[15]; break;
+                case 16: r -= threatlmr[16]; break;
+                case 17: r -= threatlmr[17]; break;
+                case 18: r -= threatlmr[18]; break;
+                default: r -= threatconst;
+            }
+          }
 
           // Increase reduction if next ply has a lot of fail high
-          if ((ss+1)->cutoffCnt > (depth < 19 ? cutcntlmr[depth] : cutcntconst) && !PvNode)
-              r += depth < 19 ? ccntlmr[depth] : ccntconst;
+          int cutoffCntThreshold = cutcntconst;
+          switch (depth) {
+                case 0: cutoffCntThreshold = cutcntlmr[0]; break;
+                case 1: cutoffCntThreshold = cutcntlmr[1]; break;
+                case 2: cutoffCntThreshold = cutcntlmr[2]; break;
+                case 3: cutoffCntThreshold = cutcntlmr[3]; break;
+                case 4: cutoffCntThreshold = cutcntlmr[4]; break;
+                case 5: cutoffCntThreshold = cutcntlmr[5]; break;
+                case 6: cutoffCntThreshold = cutcntlmr[6]; break;
+                case 7: cutoffCntThreshold = cutcntlmr[7]; break;
+                case 8: cutoffCntThreshold = cutcntlmr[8]; break;
+                case 9: cutoffCntThreshold = cutcntlmr[9]; break;
+                case 10: cutoffCntThreshold = cutcntlmr[10]; break;
+                case 11: cutoffCntThreshold = cutcntlmr[11]; break;
+                case 12: cutoffCntThreshold = cutcntlmr[12]; break;
+                case 13: cutoffCntThreshold = cutcntlmr[13]; break;
+                case 14: cutoffCntThreshold = cutcntlmr[14]; break;
+                case 15: cutoffCntThreshold = cutcntlmr[15]; break;
+                case 16: cutoffCntThreshold = cutcntlmr[16]; break;
+                case 17: cutoffCntThreshold = cutcntlmr[17]; break;
+                case 18: cutoffCntThreshold = cutcntlmr[18]; break;
+            }
+          if ((ss+1)->cutoffCnt > cutoffCntThreshold && !PvNode) {
+            switch (depth) {
+                case 0: r += ccntlmr[0]; break;
+                case 1: r += ccntlmr[1]; break;
+                case 2: r += ccntlmr[2]; break;
+                case 3: r += ccntlmr[3]; break;
+                case 4: r += ccntlmr[4]; break;
+                case 5: r += ccntlmr[5]; break;
+                case 6: r += ccntlmr[6]; break;
+                case 7: r += ccntlmr[7]; break;
+                case 8: r += ccntlmr[8]; break;
+                case 9: r += ccntlmr[9]; break;
+                case 10: r += ccntlmr[10]; break;
+                case 11: r += ccntlmr[11]; break;
+                case 12: r += ccntlmr[12]; break;
+                case 13: r += ccntlmr[13]; break;
+                case 14: r += ccntlmr[14]; break;
+                case 15: r += ccntlmr[15]; break;
+                case 16: r += ccntlmr[16]; break;
+                case 17: r += ccntlmr[17]; break;
+                case 18: r += ccntlmr[18]; break;
+                default: r += ccntconst;
+            }
+          }
+
+          int statscore = statscoreconst;
+          switch (depth) {
+                case 0: statscore = statscorelmr[0]; break;
+                case 1: statscore = statscorelmr[1]; break;
+                case 2: statscore = statscorelmr[2]; break;
+                case 3: statscore = statscorelmr[3]; break;
+                case 4: statscore = statscorelmr[4]; break;
+                case 5: statscore = statscorelmr[5]; break;
+                case 6: statscore = statscorelmr[6]; break;
+                case 7: statscore = statscorelmr[7]; break;
+                case 8: statscore = statscorelmr[8]; break;
+                case 9: statscore = statscorelmr[9]; break;
+                case 10: statscore = statscorelmr[10]; break;
+                case 11: statscore = statscorelmr[11]; break;
+                case 12: statscore = statscorelmr[12]; break;
+                case 13: statscore = statscorelmr[13]; break;
+                case 14: statscore = statscorelmr[14]; break;
+                case 15: statscore = statscorelmr[15]; break;
+                case 16: statscore = statscorelmr[16]; break;
+                case 17: statscore = statscorelmr[17]; break;
+                case 18: statscore = statscorelmr[18]; break;
+            }
 
           ss->statScore =  2 * thisThread->mainHistory[us][from_to(move)]
                          + (*contHist[0])[movedPiece][to_sq(move)]
                          + (*contHist[1])[movedPiece][to_sq(move)]
                          + (*contHist[3])[movedPiece][to_sq(move)]
-                         - (depth < 19 ?  statscorelmr[depth] : statscoreconst);
+                         - statscore;
+
+          int divisor = statconst;
+          switch (depth) {
+                case 0: divisor = statlmr[0]; break;
+                case 1: divisor = statlmr[1]; break;
+                case 2: divisor = statlmr[2]; break;
+                case 3: divisor = statlmr[3]; break;
+                case 4: divisor = statlmr[4]; break;
+                case 5: divisor = statlmr[5]; break;
+                case 6: divisor = statlmr[6]; break;
+                case 7: divisor = statlmr[7]; break;
+                case 8: divisor = statlmr[8]; break;
+                case 9: divisor = statlmr[9]; break;
+                case 10: divisor = statlmr[10]; break;
+                case 11: divisor = statlmr[11]; break;
+                case 12: divisor = statlmr[12]; break;
+                case 13: divisor = statlmr[13]; break;
+                case 14: divisor = statlmr[14]; break;
+                case 15: divisor = statlmr[15]; break;
+                case 16: divisor = statlmr[16]; break;
+                case 17: divisor = statlmr[17]; break;
+                case 18: divisor = statlmr[18]; break;
+            }
 
           // Decrease/increase reduction for moves with a good/bad history (~30 Elo)
-          r -= ss->statScore / ((depth < 19 ? statlmr[depth] : statconst) + 4000 * (depth > 7 && depth < 19));
+          r -= ss->statScore / (divisor + 4000 * (depth > 7 && depth < 19));
 
           // In general we want to cap the LMR depth search at newDepth, but when
           // reduction is negative, we allow this move a limited search extension
