@@ -58,14 +58,6 @@ using namespace Search;
 
 namespace {
 
-  int divisor1 = 168;
-  int minValue = 7;
-  int divisor2 = 3;
-  int summand1 = 4;
-  int divisor3 = 861;
-
-  TUNE(minValue, summand1, divisor1, divisor2, divisor3);
-
   // Different node types, used as a template parameter
   enum NodeType { NonPV, PV, Root };
 
@@ -808,7 +800,7 @@ namespace {
         assert(eval - beta >= 0);
 
         // Null move dynamic reduction based on depth, eval and complexity of position
-        Depth R = std::min(int(eval - beta) / divisor1, minValue) + depth / divisor2 + summand1 - (complexity / divisor3);
+        Depth R = std::min(int(eval - beta) / 177, 7) + depth / 3 + 3 - (complexity / 891);
 
         ss->currentMove = MOVE_NULL;
         ss->continuationHistory = &thisThread->continuationHistory[0][0][NO_PIECE][0];
