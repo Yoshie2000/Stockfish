@@ -800,7 +800,7 @@ namespace {
         assert(eval - beta >= 0);
 
         // Null move dynamic reduction based on depth, eval and complexity of position
-        Depth R = std::min(int(eval - beta) / 168, 7) + depth / 3 + 4 - (complexity > 861) + ss->ttPv;
+        Depth R = std::min(int(eval - beta) / 168, 7) + depth / 3 + 4 - (complexity > 861);
 
         ss->currentMove = MOVE_NULL;
         ss->continuationHistory = &thisThread->continuationHistory[0][0][NO_PIECE][0];
@@ -1172,7 +1172,7 @@ moves_loop: // When in check, search starts here
                          - 4433;
 
           // Decrease/increase reduction for moves with a good/bad history (~30 Elo)
-          r -= ss->statScore / (13628 + 4000 * (depth > 7 && depth < 19));
+          r -= ss->statScore / (13628 + 4000 * (depth > 7 && depth < 19) + 2000 * ss->ttPv);
 
           // In general we want to cap the LMR depth search at newDepth, but when
           // reduction is negative, we allow this move a limited search extension
