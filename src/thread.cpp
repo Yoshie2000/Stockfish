@@ -227,7 +227,7 @@ Thread* ThreadPool::get_best_thread() const {
                 th->rootPos.do_move(move, th->rootState, th->rootPos.gives_check(move));
             }
             int material = th->rootPos.non_pawn_material() + th->rootPos.count<PAWN>();
-            for (int i = th->rootMoves[0].pv.size(); i >= 0; i++) {
+            for (int i = th->rootMoves[0].pv.size() - 1; i >= 0; i--) {
                 th->rootPos.undo_move(th->rootMoves[0].pv[i]);
             }
 
