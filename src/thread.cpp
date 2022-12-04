@@ -222,7 +222,16 @@ Thread* ThreadPool::get_best_thread() const {
 
     // Vote according to score and depth, and select the best thread
     auto thread_value = [minScore](Thread* th) {
-            return (th->rootMoves[0].score - minScore + 14) * int(th->completedDepth);
+            // Calculate material left on the board
+            for (Move move : th->rootMoves[0].pv) {
+                th->rootPos.do_move(move, th->rootState, th->rootPos.gives_check(move));
+            }
+            int material = th->rootPos.non_pawn_material() + th->rootPos.count<PAWN>();
+            for (int i = th->rootMoves[0].pv.size(); i >= 0; i++) {
+                th->rootPos.undo_move(th->rootMoves[0].pv[i]);
+            }
+
+            return (th->rootMoves[0].score - minScore + 14) * int(th->completedDepth) + 78 - material;
         };
 
     for (Thread* th : *this)
