@@ -1085,7 +1085,7 @@ Value Eval::evaluate(const Position& pos, int* complexity) {
   }
 
   // Damp down the evaluation linearly when shuffling
-  v = v * (272 - pos.rule50_count() - pos.count<ALL_PIECES>()) / 304;
+  v = v * (408 - pos.rule50_count() - pos.count<ALL_PIECES>()) / 456;
 
   // Guarantee evaluation does not hit the tablebase range
   v = std::clamp(v, VALUE_TB_LOSS_IN_MAX_PLY + 1, VALUE_TB_WIN_IN_MAX_PLY - 1);
