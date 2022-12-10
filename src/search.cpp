@@ -81,7 +81,7 @@ namespace {
 
   // History and stats update bonus, based on depth
   int stat_bonus(Depth d) {
-    return std::min((12 * d + 282) * d - 349 , 1594);
+    return std::min((12 * d + 282) * d - 349 , 1480);
   }
 
   // Add a small random component to draw evaluations to avoid 3-fold blindness
@@ -1067,7 +1067,10 @@ moves_loop: // When in check, search starts here
                   if (  !PvNode
                       && value < singularBeta - 25
                       && ss->doubleExtensions <= 9)
+                  {
                       extension = 2;
+                      depth += depth < 12;
+                  }
               }
 
               // Multi-cut pruning
@@ -1172,7 +1175,7 @@ moves_loop: // When in check, search starts here
                          - 4433;
 
           // Decrease/increase reduction for moves with a good/bad history (~30 Elo)
-          r -= ss->statScore / (13628 + 4000 * (depth > 7 && depth < 19));
+          r -= ss->statScore / (13000 + 4152 * (depth > 7 && depth < 19));
 
           // In general we want to cap the LMR depth search at newDepth, but when
           // reduction is negative, we allow this move a limited search extension
@@ -1187,9 +1190,10 @@ moves_loop: // When in check, search starts here
               // Adjust full depth search based on LMR results - if result
               // was good enough search deeper, if it was bad enough search shallower
               const bool doDeeperSearch = value > (alpha + 64 + 11 * (newDepth - d));
+              const bool doEvenDeeperSearch = value > alpha + 582;
               const bool doShallowerSearch = value < bestValue + newDepth;
 
-              newDepth += doDeeperSearch - doShallowerSearch;
+              newDepth += doDeeperSearch - doShallowerSearch + doEvenDeeperSearch;
 
               if (newDepth > d)
                   value = -search<NonPV>(pos, ss+1, -(alpha+1), -alpha, newDepth, !cutNode);
@@ -1244,10 +1248,18 @@ moves_loop: // When in check, search starts here
           // PV move or new best move?
           if (moveCount == 1 || value > alpha)
           {
-              rm.score = value;
+              rm.score =  rm.uciScore = value;
               rm.selDepth = thisThread->selDepth;
-              rm.scoreLowerbound = value >= beta;
-              rm.scoreUpperbound = value <= alpha;
+              rm.scoreLowerbound = rm.scoreUpperbound = false;
+
+              if (value >= beta) {
+                 rm.scoreLowerbound = true;
+                 rm.uciScore = beta;
+              }
+              else if (value <= alpha) {
+                 rm.scoreUpperbound = true;
+                 rm.uciScore = alpha;
+              }
               rm.pv.resize(1);
 
               assert((ss+1)->pv);
@@ -1289,7 +1301,7 @@ moves_loop: // When in check, search starts here
                       && depth < 6
                       && beta  <  VALUE_KNOWN_WIN
                       && alpha > -VALUE_KNOWN_WIN)
-                     depth -= 1;
+                      depth -= 1;
 
                   assert(depth > 0);
               }
@@ -1514,7 +1526,6 @@ moves_loop: // When in check, search starts here
           &&  futilityBase > -VALUE_KNOWN_WIN
           &&  type_of(move) != PROMOTION)
       {
-
           if (moveCount > 2)
               continue;
 
@@ -1840,7 +1851,7 @@ string UCI::pv(const Position& pos, Depth depth) {
           continue;
 
       Depth d = updated ? depth : std::max(1, depth - 1);
-      Value v = updated ? rootMoves[i].score : rootMoves[i].previousScore;
+      Value v = updated ? rootMoves[i].uciScore : rootMoves[i].previousScore;
 
       if (v == -VALUE_INFINITE)
           v = VALUE_ZERO;
