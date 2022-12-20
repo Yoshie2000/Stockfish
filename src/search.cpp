@@ -1362,7 +1362,7 @@ moves_loop: // When in check, search starts here
                           || cutNode
                           || bestValue < alpha - 62 * depth;
 
-        bool doubleExtraBonus = extraBonus && bestValue < alpha - 120 * depth;
+        bool doubleExtraBonus = extraBonus && bestValue < alpha - 135 * depth;
 
         update_continuation_histories(ss-1, pos.piece_on(prevSq), prevSq, stat_bonus(depth) * (1 + extraBonus + doubleExtraBonus));
     }
