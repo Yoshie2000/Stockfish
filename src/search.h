@@ -76,7 +76,7 @@ struct RootMove {
   bool scoreUpperbound = false;
   int selDepth = 0;
   int tbRank = 0;
-  int rule50 = 0;
+  int materialCount = 0;
   Value tbScore;
   std::vector<Move> pv;
 };
