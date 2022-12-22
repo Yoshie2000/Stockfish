@@ -1086,7 +1086,7 @@ Value Eval::evaluate(const Position& pos, int* complexity) {
 
   // Damp eval later in the game for high rule50 values
   int ply = std::min(50, pos.game_ply());
-  v = v + (v * ply * (50 - pos.rule50_count())) / 25000;
+  v = v + (v * ply * (50 - pos.rule50_count() - ply + 1)) / 25000;
 
   // Guarantee evaluation does not hit the tablebase range
   v = std::clamp(v, VALUE_TB_LOSS_IN_MAX_PLY + 1, VALUE_TB_WIN_IN_MAX_PLY - 1);
