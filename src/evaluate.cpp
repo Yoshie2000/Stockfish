@@ -1084,8 +1084,9 @@ Value Eval::evaluate(const Position& pos, int* complexity) {
       v = (nnue * scale + optimism * (scale - 755)) / 1024;
   }
 
-  // Damp down the evaluation linearly when shuffling
-  v = v * (197 - pos.rule50_count()) / 214;
+  // Damp eval later in the game for low rule50 values, so that moves that reset rule50 will be played sooner
+  int ply = std::min(50, pos.game_ply());
+  v = v + (v * ply * (pos.rule50_count() - 50)) / 10000;
 
   // Guarantee evaluation does not hit the tablebase range
   v = std::clamp(v, VALUE_TB_LOSS_IN_MAX_PLY + 1, VALUE_TB_WIN_IN_MAX_PLY - 1);
