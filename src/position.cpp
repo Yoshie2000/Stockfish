@@ -884,6 +884,7 @@ void Position::do_move(Move m, StateInfo& newSt, bool givesCheck) {
           if (stp->key == st->key)
           {
               st->repetition = stp->repetition ? -i : i;
+              st->total_repetitions++;
               break;
           }
       }
