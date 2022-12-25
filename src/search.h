@@ -38,7 +38,7 @@ namespace Search {
 
 struct Stack {
   Move* pv;
-  int endOfPvMaterial;
+  int endOfPvRule50;
   PieceToHistory* continuationHistory;
   int ply;
   Move currentMove;
@@ -77,7 +77,7 @@ struct RootMove {
   bool scoreUpperbound = false;
   int selDepth = 0;
   int tbRank = 0;
-  int endOfPvMaterial = 0;
+  int endOfPvRule50;
   Value tbScore;
   std::vector<Move> pv;
 };

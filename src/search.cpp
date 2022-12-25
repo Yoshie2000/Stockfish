@@ -559,7 +559,7 @@ namespace {
     // Step 1. Initialize node
     Thread* thisThread = pos.this_thread();
     ss->inCheck        = pos.checkers();
-    ss->endOfPvMaterial = pos.count<PAWN>() + pos.non_pawn_material() / 230;
+    ss->endOfPvRule50  = pos.rule50_count();
     priorCapture       = pos.captured_piece();
     Color us           = pos.side_to_move();
     moveCount          = captureCount = quietCount = ss->moveCount = 0;
@@ -1253,7 +1253,7 @@ moves_loop: // When in check, search starts here
               rm.score =  rm.uciScore = value;
               rm.selDepth = thisThread->selDepth;
               rm.scoreLowerbound = rm.scoreUpperbound = false;
-              rm.endOfPvMaterial = (ss+1)->endOfPvMaterial;
+              rm.endOfPvRule50 = (ss+1)->endOfPvRule50;
 
               if (value >= beta) {
                  rm.scoreLowerbound = true;
@@ -1294,8 +1294,8 @@ moves_loop: // When in check, search starts here
 
               if (PvNode && !rootNode) { // Update pv even in fail-high case
                   update_pv(ss->pv, move, (ss+1)->pv);
-                  if ((ss+1)->endOfPvMaterial)
-                    ss->endOfPvMaterial = (ss+1)->endOfPvMaterial;
+                  if ((ss+1)->endOfPvRule50)
+                    ss->endOfPvRule50 = (ss+1)->endOfPvRule50;
               }
 
               if (PvNode && value < beta) // Update alpha! Always alpha < beta
@@ -1425,7 +1425,7 @@ moves_loop: // When in check, search starts here
     Thread* thisThread = pos.this_thread();
     bestMove = MOVE_NONE;
     ss->inCheck = pos.checkers();
-    ss->endOfPvMaterial = pos.count<PAWN>() + pos.non_pawn_material() / 230;
+    ss->endOfPvRule50 = pos.rule50_count();
     moveCount = 0;
 
     // Check for an immediate draw or maximum ply reached
@@ -1598,8 +1598,8 @@ moves_loop: // When in check, search starts here
 
               if (PvNode) { // Update pv even in fail-high case
                   update_pv(ss->pv, move, (ss+1)->pv);
-                  if ((ss+1)->endOfPvMaterial)
-                    ss->endOfPvMaterial = (ss+1)->endOfPvMaterial;
+                  if ((ss+1)->endOfPvRule50)
+                    ss->endOfPvRule50 = (ss+1)->endOfPvRule50;
               }
 
               if (PvNode && value < beta) // Update alpha here!
