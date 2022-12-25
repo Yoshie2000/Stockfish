@@ -512,6 +512,17 @@ void Thread::search() {
 
 namespace {
 
+    int pawnValue = 100;
+    int knightValue = 300;
+    int bishopValue = 300;
+    int rookValue = 500;
+    int queenValue = 900;
+
+    TUNE(SetRange(-200, 200), pawnValue);
+    TUNE(SetRange(-600, 600), knightValue, bishopValue);
+    TUNE(SetRange(-1000, 1000), rookValue);
+    TUNE(SetRange(-2000, 2000), queenValue);
+
   // search<>() is the main search function for both PV and non-PV nodes
 
   template <NodeType nodeType>
@@ -559,6 +570,7 @@ namespace {
     // Step 1. Initialize node
     Thread* thisThread = pos.this_thread();
     ss->inCheck        = pos.checkers();
+    ss->endOfPvMaterial = pawnValue * pos.count<PAWN>() + knightValue * pos.count<KNIGHT>() + bishopValue * pos.count<BISHOP>() + rookValue * pos.count<ROOK>() + queenValue * pos.count<QUEEN>();
     priorCapture       = pos.captured_piece();
     Color us           = pos.side_to_move();
     moveCount          = captureCount = quietCount = ss->moveCount = 0;
@@ -1252,6 +1264,7 @@ moves_loop: // When in check, search starts here
               rm.score =  rm.uciScore = value;
               rm.selDepth = thisThread->selDepth;
               rm.scoreLowerbound = rm.scoreUpperbound = false;
+              rm.endOfPvMaterial = (ss+1)->endOfPvMaterial;
 
               if (value >= beta) {
                  rm.scoreLowerbound = true;
@@ -1290,8 +1303,11 @@ moves_loop: // When in check, search starts here
           {
               bestMove = move;
 
-              if (PvNode && !rootNode) // Update pv even in fail-high case
+              if (PvNode && !rootNode) { // Update pv even in fail-high case
                   update_pv(ss->pv, move, (ss+1)->pv);
+                  if ((ss+1)->endOfPvMaterial)
+                    ss->endOfPvMaterial = (ss+1)->endOfPvMaterial;
+              }
 
               if (PvNode && value < beta) // Update alpha! Always alpha < beta
               {
@@ -1421,6 +1437,7 @@ moves_loop: // When in check, search starts here
     Thread* thisThread = pos.this_thread();
     bestMove = MOVE_NONE;
     ss->inCheck = pos.checkers();
+    ss->endOfPvMaterial = pawnValue * pos.count<PAWN>() + knightValue * pos.count<KNIGHT>() + bishopValue * pos.count<BISHOP>() + rookValue * pos.count<ROOK>() + queenValue * pos.count<QUEEN>();
     moveCount = 0;
 
     // Check for an immediate draw or maximum ply reached
@@ -1591,8 +1608,11 @@ moves_loop: // When in check, search starts here
           {
               bestMove = move;
 
-              if (PvNode) // Update pv even in fail-high case
+              if (PvNode) { // Update pv even in fail-high case
                   update_pv(ss->pv, move, (ss+1)->pv);
+                  if ((ss+1)->endOfPvMaterial)
+                    ss->endOfPvMaterial = (ss+1)->endOfPvMaterial;
+              }
 
               if (PvNode && value < beta) // Update alpha here!
                   alpha = value;
