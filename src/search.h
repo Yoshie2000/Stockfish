@@ -24,6 +24,7 @@
 #include "misc.h"
 #include "movepick.h"
 #include "types.h"
+#include "tt.h"
 
 namespace Stockfish {
 
@@ -38,6 +39,7 @@ namespace Search {
 
 struct Stack {
   Move* pv;
+  TTEntry* endOfPvTte;
   PieceToHistory* continuationHistory;
   int ply;
   Move currentMove;
@@ -77,6 +79,7 @@ struct RootMove {
   int selDepth = 0;
   int tbRank = 0;
   Value tbScore;
+  TTEntry* endOfPvTte;
   std::vector<Move> pv;
 };
 

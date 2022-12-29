@@ -312,6 +312,8 @@ void Thread::search() {
   optimism[us] = optimism[~us] = VALUE_ZERO;
 
   int searchAgainCounter = 0;
+  int unchangedEvalCounter = 0;
+  Value previousValue = bestValue;
 
   // Iterative deepening loop until requested to stop or the target depth is reached
   while (   ++rootDepth < MAX_PLY
@@ -379,6 +381,20 @@ void Thread::search() {
               // new PV that goes to the front. Note that in case of MultiPV
               // search the already searched PV lines are preserved.
               std::stable_sort(rootMoves.begin() + pvIdx, rootMoves.begin() + pvLast);
+
+              // If percentage deviation to previous eval <= .5%, add to counter (fortress detection)
+              int deviation = bestValue == 0 ? std::abs(previousValue) : std::abs((1000 * (previousValue - bestValue)) / bestValue);
+              if (deviation > 5)
+                unchangedEvalCounter = 0;
+              else
+                unchangedEvalCounter++;
+
+              // Save end of pv to transposition table, with reduced evaluation
+              TTEntry* tte = rootMoves[0].endOfPvTte;
+              if (unchangedEvalCounter >= 5) {
+                tte->setForceCutoff(tte->value() / (unchangedEvalCounter * (unchangedEvalCounter - 4)));
+              }
+              previousValue = Value((int) bestValue);
 
               // If search has been stopped, we break immediately. Sorting is
               // safe because RootMoves is still valid, although it refers to
@@ -619,6 +635,7 @@ namespace {
     excludedMove = ss->excludedMove;
     posKey = excludedMove == MOVE_NONE ? pos.key() : pos.key() ^ make_key(excludedMove);
     tte = TT.probe(posKey, ss->ttHit);
+    ss->endOfPvTte = tte;
     ttValue = ss->ttHit ? value_from_tt(tte->value(), ss->ply, pos.rule50_count()) : VALUE_NONE;
     ttMove =  rootNode ? thisThread->rootMoves[thisThread->pvIdx].pv[0]
             : ss->ttHit    ? tte->move() : MOVE_NONE;
@@ -627,11 +644,12 @@ namespace {
         ss->ttPv = PvNode || (ss->ttHit && tte->is_pv());
 
     // At non-PV nodes we check for an early TT cutoff
-    if (  !PvNode
+    if (tte->is_forced_cutoff() ||
+          (!PvNode
         && ss->ttHit
         && tte->depth() > depth - (tte->bound() == BOUND_EXACT)
         && ttValue != VALUE_NONE // Possible in case of TT access race
-        && (tte->bound() & (ttValue >= beta ? BOUND_LOWER : BOUND_UPPER)))
+        && (tte->bound() & (ttValue >= beta ? BOUND_LOWER : BOUND_UPPER))))
     {
         // If ttMove is quiet, update move sorting heuristics on TT hit (~2 Elo)
         if (ttMove)
@@ -1245,6 +1263,7 @@ moves_loop: // When in check, search starts here
                                     thisThread->rootMoves.end(), move);
 
           rm.averageScore = rm.averageScore != -VALUE_INFINITE ? (2 * value + rm.averageScore) / 3 : value;
+          rm.endOfPvTte = (ss+1)->endOfPvTte;
 
           // PV move or new best move?
           if (moveCount == 1 || value > alpha)
@@ -1290,8 +1309,11 @@ moves_loop: // When in check, search starts here
           {
               bestMove = move;
 
-              if (PvNode && !rootNode) // Update pv even in fail-high case
+              if (PvNode && !rootNode) { // Update pv even in fail-high case
                   update_pv(ss->pv, move, (ss+1)->pv);
+                  if ((ss+2)->endOfPvTte)
+                    ss->endOfPvTte = (ss+1)->endOfPvTte;
+              }
 
               if (PvNode && value < beta) // Update alpha! Always alpha < beta
               {
@@ -1441,6 +1463,7 @@ moves_loop: // When in check, search starts here
     ttValue = ss->ttHit ? value_from_tt(tte->value(), ss->ply, pos.rule50_count()) : VALUE_NONE;
     ttMove = ss->ttHit ? tte->move() : MOVE_NONE;
     pvHit = ss->ttHit && tte->is_pv();
+    ss->endOfPvTte = tte;
 
     if (  !PvNode
         && ss->ttHit
@@ -1591,8 +1614,11 @@ moves_loop: // When in check, search starts here
           {
               bestMove = move;
 
-              if (PvNode) // Update pv even in fail-high case
+              if (PvNode) { // Update pv even in fail-high case
                   update_pv(ss->pv, move, (ss+1)->pv);
+                  if ((ss+2)->endOfPvTte)
+                    ss->endOfPvTte = (ss+1)->endOfPvTte;
+              }
 
               if (PvNode && value < beta) // Update alpha here!
                   alpha = value;
