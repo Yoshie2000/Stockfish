@@ -57,7 +57,7 @@ void TTEntry::save(Key k, Value v, bool pv, Bound b, Depth d, Move m, Value ev) 
 
 void TTEntry::setForceCutoff(Value v) {
     value16 = (int16_t) v;
-    forceCutoff = true;
+    genBound8 |= 1 << 3;
 }
 
 

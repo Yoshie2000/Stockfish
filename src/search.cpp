@@ -392,7 +392,7 @@ void Thread::search() {
               // Save end of pv to transposition table, with reduced evaluation
               TTEntry* tte = rootMoves[0].endOfPvTte;
               if (unchangedEvalCounter >= 5) {
-                tte->setForceCutoff(tte->value() / (unchangedEvalCounter * (unchangedEvalCounter - 4)));
+                tte->setForceCutoff(tte->value() / (unchangedEvalCounter - 3));
               }
               previousValue = Value((int) bestValue);
 
