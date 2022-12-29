@@ -1159,8 +1159,8 @@ moves_loop: // When in check, search starts here
           r++;
       
       // Decrease reduction for moves that reset rule50 if rule50 was previously high
-      if (ss->rule50 > 25 && (type_of(movedPiece) == PAWN || capture))
-          r -= (ss-1)->rule50 / 25;
+      if (ss->rule50 > 50 && (type_of(movedPiece) == PAWN || capture))
+          r -= (ss-1)->rule50 / 50;
 
       ss->statScore =  2 * thisThread->mainHistory[us][from_to(move)]
                      + (*contHist[0])[movedPiece][to_sq(move)]
