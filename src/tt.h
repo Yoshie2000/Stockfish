@@ -37,6 +37,7 @@ namespace Stockfish {
 
 struct TTEntry {
 
+  Key key() const { return (Key) key16; }
   Move  move()  const { return (Move )move16; }
   Value value() const { return (Value)value16; }
   Value eval()  const { return (Value)eval16; }

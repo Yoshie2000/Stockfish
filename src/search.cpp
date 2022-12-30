@@ -392,7 +392,10 @@ void Thread::search() {
               // Save end of pv to transposition table, with reduced evaluation
               TTEntry* tte = rootMoves[0].endOfPvTte;
               if (unchangedEvalCounter >= 5) {
-                tte->setValue(tte->value() / (unchangedEvalCounter - 3));
+                if (tte->key() == rootMoves[0].endOfPvKey)
+                    tte->setValue(tte->value() / (unchangedEvalCounter - 3));
+                else
+                    tte->save(rootMoves[0].endOfPvKey, bestValue / (unchangedEvalCounter - 3), true, BOUND_EXACT, adjustedDepth, MOVE_NONE, VALUE_NONE);
               }
               previousValue = Value((int) bestValue);
 
@@ -636,6 +639,7 @@ namespace {
     posKey = excludedMove == MOVE_NONE ? pos.key() : pos.key() ^ make_key(excludedMove);
     tte = TT.probe(posKey, ss->ttHit);
     ss->endOfPvTte = tte;
+    ss->endOfPvKey = posKey;
     ttValue = ss->ttHit ? value_from_tt(tte->value(), ss->ply, pos.rule50_count()) : VALUE_NONE;
     ttMove =  rootNode ? thisThread->rootMoves[thisThread->pvIdx].pv[0]
             : ss->ttHit    ? tte->move() : MOVE_NONE;
@@ -1263,6 +1267,7 @@ moves_loop: // When in check, search starts here
 
           rm.averageScore = rm.averageScore != -VALUE_INFINITE ? (2 * value + rm.averageScore) / 3 : value;
           rm.endOfPvTte = (ss+1)->endOfPvTte;
+          rm.endOfPvKey = (ss+1)->endOfPvKey;
 
           // PV move or new best move?
           if (moveCount == 1 || value > alpha)
@@ -1310,8 +1315,10 @@ moves_loop: // When in check, search starts here
 
               if (PvNode && !rootNode) { // Update pv even in fail-high case
                   update_pv(ss->pv, move, (ss+1)->pv);
-                  if ((ss+2)->endOfPvTte)
+                  if ((ss+2)->endOfPvTte) {
                     ss->endOfPvTte = (ss+1)->endOfPvTte;
+                    ss->endOfPvKey = (ss+1)->endOfPvKey;
+                  }
               }
 
               if (PvNode && value < beta) // Update alpha! Always alpha < beta
@@ -1463,6 +1470,7 @@ moves_loop: // When in check, search starts here
     ttMove = ss->ttHit ? tte->move() : MOVE_NONE;
     pvHit = ss->ttHit && tte->is_pv();
     ss->endOfPvTte = tte;
+    ss->endOfPvKey = posKey;
 
     if (  !PvNode
         && ss->ttHit
@@ -1615,8 +1623,10 @@ moves_loop: // When in check, search starts here
 
               if (PvNode) { // Update pv even in fail-high case
                   update_pv(ss->pv, move, (ss+1)->pv);
-                  if ((ss+2)->endOfPvTte)
+                  if ((ss+2)->endOfPvTte) {
                     ss->endOfPvTte = (ss+1)->endOfPvTte;
+                    ss->endOfPvKey = (ss+1)->endOfPvKey;
+                  }
               }
 
               if (PvNode && value < beta) // Update alpha here!

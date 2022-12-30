@@ -40,6 +40,7 @@ namespace Search {
 struct Stack {
   Move* pv;
   TTEntry* endOfPvTte;
+  Key endOfPvKey;
   PieceToHistory* continuationHistory;
   int ply;
   Move currentMove;
@@ -80,6 +81,7 @@ struct RootMove {
   int tbRank = 0;
   Value tbScore;
   TTEntry* endOfPvTte;
+  Key endOfPvKey;
   std::vector<Move> pv;
 };
 
