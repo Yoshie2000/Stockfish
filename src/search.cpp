@@ -388,16 +388,13 @@ void Thread::search() {
                 unchangedEvalCounter = 0;
               else
                 unchangedEvalCounter++;
-
-              // Save end of pv to transposition table, with reduced evaluation
-              TTEntry* tte = rootMoves[0].endOfPvTte;
-              if (unchangedEvalCounter >= 5) {
-                if (tte->key() == rootMoves[0].endOfPvKey)
-                    tte->setValue(tte->value() / (unchangedEvalCounter - 3));
-                else
-                    tte->save(rootMoves[0].endOfPvKey, bestValue / (unchangedEvalCounter - 3), true, BOUND_EXACT, adjustedDepth, MOVE_NONE, VALUE_NONE);
-              }
               previousValue = Value((int) bestValue);
+
+              // Save unchangedEvalCounter to history
+              if (unchangedEvalCounter > 2) {
+                Move lastMove = rootMoves[0].pv[rootMoves[0].pv.size() - 1];
+                rootPos.this_thread()->drawReductionHistory[rootMoves[0].endOfPvPiece][to_sq(lastMove)] = unchangedEvalCounter * unchangedEvalCounter;
+              }
 
               // If search has been stopped, we break immediately. Sorting is
               // safe because RootMoves is still valid, although it refers to
@@ -584,6 +581,9 @@ namespace {
     bestValue          = -VALUE_INFINITE;
     maxValue           = VALUE_INFINITE;
 
+    Square prevSq      = to_sq((ss-1)->currentMove);
+    ss->endOfPvPiece   = pos.piece_on(prevSq);
+
     // Check for the available remaining time
     if (thisThread == Threads.main())
         static_cast<MainThread*>(thisThread)->check_time();
@@ -598,7 +598,7 @@ namespace {
         if (   Threads.stop.load(std::memory_order_relaxed)
             || pos.is_draw(ss->ply)
             || ss->ply >= MAX_PLY)
-            return (ss->ply >= MAX_PLY && !ss->inCheck) ? evaluate(pos)
+            return (ss->ply >= MAX_PLY && !ss->inCheck) ? evaluate(pos, nullptr, prevSq)
                                                         : value_draw(pos.this_thread());
 
         // Step 3. Mate distance pruning. Even if we mate at the next move our score
@@ -622,7 +622,6 @@ namespace {
     (ss+2)->killers[0]   = (ss+2)->killers[1] = MOVE_NONE;
     (ss+2)->cutoffCnt    = 0;
     ss->doubleExtensions = (ss-1)->doubleExtensions;
-    Square prevSq        = to_sq((ss-1)->currentMove);
 
     // Initialize statScore to zero for the grandchildren of the current position.
     // So statScore is shared between all grandchildren and only the first grandchild
@@ -638,8 +637,6 @@ namespace {
     excludedMove = ss->excludedMove;
     posKey = excludedMove == MOVE_NONE ? pos.key() : pos.key() ^ make_key(excludedMove);
     tte = TT.probe(posKey, ss->ttHit);
-    ss->endOfPvTte = tte;
-    ss->endOfPvKey = posKey;
     ttValue = ss->ttHit ? value_from_tt(tte->value(), ss->ply, pos.rule50_count()) : VALUE_NONE;
     ttMove =  rootNode ? thisThread->rootMoves[thisThread->pvIdx].pv[0]
             : ss->ttHit    ? tte->move() : MOVE_NONE;
@@ -751,7 +748,7 @@ namespace {
         // Never assume anything about values stored in TT
         ss->staticEval = eval = tte->eval();
         if (eval == VALUE_NONE)
-            ss->staticEval = eval = evaluate(pos, &complexity);
+            ss->staticEval = eval = evaluate(pos, &complexity, prevSq);
         else // Fall back to (semi)classical complexity for TT hits, the NNUE complexity is lost
             complexity = abs(ss->staticEval - pos.psq_eg_stm());
 
@@ -762,7 +759,7 @@ namespace {
     }
     else
     {
-        ss->staticEval = eval = evaluate(pos, &complexity);
+        ss->staticEval = eval = evaluate(pos, &complexity, prevSq);
 
         // Save static evaluation into transposition table
         if (!excludedMove)
@@ -1266,8 +1263,7 @@ moves_loop: // When in check, search starts here
                                     thisThread->rootMoves.end(), move);
 
           rm.averageScore = rm.averageScore != -VALUE_INFINITE ? (2 * value + rm.averageScore) / 3 : value;
-          rm.endOfPvTte = (ss+1)->endOfPvTte;
-          rm.endOfPvKey = (ss+1)->endOfPvKey;
+          rm.endOfPvPiece = (ss+1)->endOfPvPiece;
 
           // PV move or new best move?
           if (moveCount == 1 || value > alpha)
@@ -1315,10 +1311,8 @@ moves_loop: // When in check, search starts here
 
               if (PvNode && !rootNode) { // Update pv even in fail-high case
                   update_pv(ss->pv, move, (ss+1)->pv);
-                  if ((ss+2)->endOfPvTte) {
-                    ss->endOfPvTte = (ss+1)->endOfPvTte;
-                    ss->endOfPvKey = (ss+1)->endOfPvKey;
-                  }
+                  if ((ss+1)->endOfPvPiece != NO_PIECE)
+                    ss->endOfPvPiece = (ss+1)->endOfPvPiece;
               }
 
               if (PvNode && value < beta) // Update alpha! Always alpha < beta
@@ -1447,14 +1441,16 @@ moves_loop: // When in check, search starts here
     }
 
     Thread* thisThread = pos.this_thread();
+    Square prevSq = to_sq((ss-1)->currentMove);
     bestMove = MOVE_NONE;
     ss->inCheck = pos.checkers();
+    ss->endOfPvPiece = pos.piece_on(prevSq);
     moveCount = 0;
 
     // Check for an immediate draw or maximum ply reached
     if (   pos.is_draw(ss->ply)
         || ss->ply >= MAX_PLY)
-        return (ss->ply >= MAX_PLY && !ss->inCheck) ? evaluate(pos) : VALUE_DRAW;
+        return (ss->ply >= MAX_PLY && !ss->inCheck) ? evaluate(pos, nullptr, prevSq) : VALUE_DRAW;
 
     assert(0 <= ss->ply && ss->ply < MAX_PLY);
 
@@ -1469,8 +1465,6 @@ moves_loop: // When in check, search starts here
     ttValue = ss->ttHit ? value_from_tt(tte->value(), ss->ply, pos.rule50_count()) : VALUE_NONE;
     ttMove = ss->ttHit ? tte->move() : MOVE_NONE;
     pvHit = ss->ttHit && tte->is_pv();
-    ss->endOfPvTte = tte;
-    ss->endOfPvKey = posKey;
 
     if (  !PvNode
         && ss->ttHit
@@ -1491,7 +1485,7 @@ moves_loop: // When in check, search starts here
         {
             // Never assume anything about values stored in TT
             if ((ss->staticEval = bestValue = tte->eval()) == VALUE_NONE)
-                ss->staticEval = bestValue = evaluate(pos);
+                ss->staticEval = bestValue = evaluate(pos, nullptr, prevSq);
 
             // ttValue can be used as a better position evaluation (~13 Elo)
             if (    ttValue != VALUE_NONE
@@ -1501,7 +1495,7 @@ moves_loop: // When in check, search starts here
         else
             // In case of null move search use previous static eval with a different sign
             ss->staticEval = bestValue =
-            (ss-1)->currentMove != MOVE_NULL ? evaluate(pos)
+            (ss-1)->currentMove != MOVE_NULL ? evaluate(pos, nullptr, prevSq)
                                              : -(ss-1)->staticEval;
 
         // Stand pat. Return immediately if static value is at least beta
@@ -1529,7 +1523,6 @@ moves_loop: // When in check, search starts here
     // to search the moves. Because the depth is <= 0 here, only captures,
     // queen promotions, and other checks (only if depth >= DEPTH_QS_CHECKS)
     // will be generated.
-    Square prevSq = to_sq((ss-1)->currentMove);
     MovePicker mp(pos, ttMove, depth, &thisThread->mainHistory,
                                       &thisThread->captureHistory,
                                       contHist,
@@ -1623,10 +1616,8 @@ moves_loop: // When in check, search starts here
 
               if (PvNode) { // Update pv even in fail-high case
                   update_pv(ss->pv, move, (ss+1)->pv);
-                  if ((ss+2)->endOfPvTte) {
-                    ss->endOfPvTte = (ss+1)->endOfPvTte;
-                    ss->endOfPvKey = (ss+1)->endOfPvKey;
-                  }
+                  if ((ss+1)->endOfPvPiece != NO_PIECE)
+                    ss->endOfPvPiece = (ss+1)->endOfPvPiece;
               }
 
               if (PvNode && value < beta) // Update alpha here!

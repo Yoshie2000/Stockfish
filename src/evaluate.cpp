@@ -1048,7 +1048,7 @@ make_v:
 /// evaluate() is the evaluator for the outer world. It returns a static
 /// evaluation of the position from the point of view of the side to move.
 
-Value Eval::evaluate(const Position& pos, int* complexity) {
+Value Eval::evaluate(const Position& pos, int* complexity, Square prevSq) {
 
   Value v;
   Value psq = pos.psq_eg_stm();
@@ -1086,6 +1086,13 @@ Value Eval::evaluate(const Position& pos, int* complexity) {
 
   // Damp down the evaluation linearly when shuffling
   v = v * (197 - pos.rule50_count()) / 214;
+
+  if (prevSq != SQ_NONE) {
+    int16_t drawReduction = pos.this_thread()->drawReductionHistory[pos.piece_on(prevSq)][prevSq];
+    if (drawReduction > 1) {
+        v = v / drawReduction;
+    }
+  }
 
   // Guarantee evaluation does not hit the tablebase range
   v = std::clamp(v, VALUE_TB_LOSS_IN_MAX_PLY + 1, VALUE_TB_WIN_IN_MAX_PLY - 1);
