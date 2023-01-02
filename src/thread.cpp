@@ -210,19 +210,6 @@ void ThreadPool::start_thinking(Position& pos, StateListPtr& states,
   main()->start_searching();
 }
 
-int summand1 = 100;
-int pawnValue = 100;
-int knightValue = 300;
-int bishopValue = 300;
-int rookValue = 500;
-int queenValue = 900;
-
-TUNE(SetRange(0, 1000), summand1);
-TUNE(SetRange(-200, 200), pawnValue);
-TUNE(SetRange(-600, 600), knightValue, bishopValue);
-TUNE(SetRange(-1000, 1000), rookValue);
-TUNE(SetRange(-2000, 2000), queenValue);
-
 Thread* ThreadPool::get_best_thread() const {
 
     Thread* bestThread = front();
@@ -235,8 +222,8 @@ Thread* ThreadPool::get_best_thread() const {
 
     // Vote according to score and depth, and select the best thread
     auto thread_value = [minScore](Thread* th) {
-            int materialValue = pawnValue * th->rootPos.count<PAWN>() + knightValue * th->rootPos.count<KNIGHT>() + bishopValue * th->rootPos.count<BISHOP>() + rookValue * th->rootPos.count<ROOK>() + queenValue * th->rootPos.count<QUEEN>();
-            return (th->rootMoves[0].score - minScore + 14) * int(th->completedDepth) + summand1 + materialValue / 100;
+            int materialValue = 98 * th->rootPos.count<PAWN>() + 276 * th->rootPos.count<KNIGHT>() + 277 * th->rootPos.count<BISHOP>() + 543 * th->rootPos.count<ROOK>() + 977 * th->rootPos.count<QUEEN>();
+            return (th->rootMoves[0].score - minScore + 14) * int(th->completedDepth) + 104 + materialValue / 100;
         };
 
     for (Thread* th : *this)
