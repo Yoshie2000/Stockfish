@@ -210,10 +210,6 @@ void ThreadPool::start_thinking(Position& pos, StateListPtr& states,
   main()->start_searching();
 }
 
-int summand1 = 100;
-
-TUNE(SetRange(0, 1000), summand1);
-
 Thread* ThreadPool::get_best_thread() const {
 
     Thread* bestThread = front();
@@ -226,7 +222,7 @@ Thread* ThreadPool::get_best_thread() const {
 
     // Vote according to score and depth, and select the best thread
     auto thread_value = [minScore](Thread* th) {
-            return (th->rootMoves[0].score - minScore + 14) * int(th->completedDepth) + summand1 - th->rootMoves[0].endOfPvMaterial / 100;
+            return (th->rootMoves[0].score - minScore + 14) * int(th->completedDepth) + 104 - th->rootMoves[0].endOfPvMaterial / 100;
         };
 
     for (Thread* th : *this)

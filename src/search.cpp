@@ -512,17 +512,6 @@ void Thread::search() {
 
 namespace {
 
-    int pawnValue = 100;
-    int knightValue = 300;
-    int bishopValue = 300;
-    int rookValue = 500;
-    int queenValue = 900;
-
-    TUNE(SetRange(-200, 200), pawnValue);
-    TUNE(SetRange(-600, 600), knightValue, bishopValue);
-    TUNE(SetRange(-1000, 1000), rookValue);
-    TUNE(SetRange(-2000, 2000), queenValue);
-
   // search<>() is the main search function for both PV and non-PV nodes
 
   template <NodeType nodeType>
@@ -570,7 +559,7 @@ namespace {
     // Step 1. Initialize node
     Thread* thisThread = pos.this_thread();
     ss->inCheck        = pos.checkers();
-    ss->endOfPvMaterial = pawnValue * pos.count<PAWN>() + knightValue * pos.count<KNIGHT>() + bishopValue * pos.count<BISHOP>() + rookValue * pos.count<ROOK>() + queenValue * pos.count<QUEEN>();
+    ss->endOfPvMaterial = 90 * pos.count<PAWN>() + 295 * pos.count<KNIGHT>() + 322 * pos.count<BISHOP>() + 493 * pos.count<ROOK>() + 1008 * pos.count<QUEEN>();
     priorCapture       = pos.captured_piece();
     Color us           = pos.side_to_move();
     moveCount          = captureCount = quietCount = ss->moveCount = 0;
@@ -1437,7 +1426,7 @@ moves_loop: // When in check, search starts here
     Thread* thisThread = pos.this_thread();
     bestMove = MOVE_NONE;
     ss->inCheck = pos.checkers();
-    ss->endOfPvMaterial = pawnValue * pos.count<PAWN>() + knightValue * pos.count<KNIGHT>() + bishopValue * pos.count<BISHOP>() + rookValue * pos.count<ROOK>() + queenValue * pos.count<QUEEN>();
+    ss->endOfPvMaterial = 90 * pos.count<PAWN>() + 295 * pos.count<KNIGHT>() + 322 * pos.count<BISHOP>() + 493 * pos.count<ROOK>() + 1008 * pos.count<QUEEN>();
     moveCount = 0;
 
     // Check for an immediate draw or maximum ply reached
