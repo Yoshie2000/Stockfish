@@ -729,7 +729,7 @@ namespace {
     {
         // Never assume anything about values stored in TT
         ss->staticEval = eval = tte->eval();
-        if (eval == VALUE_NONE || tte->depth() < depth - (tte->bound() == BOUND_EXACT))
+        if (eval == VALUE_NONE || tte->depth() < depth / 2 - (tte->bound() == BOUND_EXACT))
             ss->staticEval = eval = evaluate(pos, &complexity);
         else // Fall back to (semi)classical complexity for TT hits, the NNUE complexity is lost
             complexity = abs(ss->staticEval - pos.psq_eg_stm());
