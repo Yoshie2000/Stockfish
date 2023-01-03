@@ -729,7 +729,7 @@ namespace {
     {
         // Never assume anything about values stored in TT
         ss->staticEval = ss->eval = tte->eval();
-        if (ss->eval == VALUE_NONE || tte->depth() < depth / 2 - (tte->bound() == BOUND_EXACT))
+        if (ss->eval == VALUE_NONE)
             ss->staticEval = ss->eval = evaluate(pos, &complexity);
         else // Fall back to (semi)classical complexity for TT hits, the NNUE complexity is lost
             complexity = abs(ss->staticEval - pos.psq_eg_stm());
@@ -737,7 +737,7 @@ namespace {
         // ttValue can be used as a better position evaluation (~7 Elo)
         if (    ttValue != VALUE_NONE
             && (tte->bound() & (ttValue > ss->eval ? BOUND_LOWER : BOUND_UPPER)))
-            ss->staticEval = ss->eval = ttValue;
+            ss->eval = ttValue;
     }
     else
     {
@@ -745,7 +745,7 @@ namespace {
 
         // Save static evaluation into transposition table
         if (!excludedMove)
-            tte->save(posKey, VALUE_NONE, ss->ttPv, BOUND_NONE, DEPTH_NONE, MOVE_NONE, ss->eval);
+            tte->save(posKey, VALUE_NONE, ss->ttPv, BOUND_NONE, DEPTH_NONE, MOVE_NONE, ss->staticEval);
     }
 
     thisThread->complexityAverage.update(complexity);
@@ -790,7 +790,7 @@ namespace {
         && (ss-1)->currentMove != MOVE_NULL
         && (ss-1)->statScore < 18200
         &&  ss->eval >= beta
-        &&  ss->eval >= ss->eval
+        &&  ss->eval >= ss->staticEval
         &&  ss->eval >= beta - 20 * depth - improvement / 14 + 235 + complexity / 24
         && !excludedMove
         &&  pos.non_pawn_material(us)
