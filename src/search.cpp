@@ -658,14 +658,11 @@ namespace {
             }
         }
 
-        // Partial workaround for the graph history interaction problem
-        // For high rule50 counts don't produce transposition table cutoffs.
+        // Re-scale eval to the different rule50 value
         int rule50 = pos.rule50_count();
         int tte_rule50 = tte->rule50();
-        if (rule50 <= tte_rule50 || tte_rule50 < 80)
-            return ttValue;
-        else
-            return ttValue * (30 - (rule50 - tte_rule50)) / 50;
+        if (rule50 == tte_rule50) return ttValue;
+        return ttValue * (200 - rule50) / (200 - tte_rule50);
     }
 
     // Step 5. Tablebases probe
