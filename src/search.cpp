@@ -658,11 +658,12 @@ namespace {
             }
         }
 
-        // Re-scale eval to the different rule50 value
         int rule50 = pos.rule50_count();
-        int tte_rule50 = tte->rule50();
-        if (rule50 == tte_rule50) return ttValue;
-        return ttValue * (200 - rule50) / (200 - tte_rule50);
+        int tte_rule50 = tte->rule50() + 84;
+        if (rule50 <= tte_rule50 || tte_rule50 < 90)
+            return ttValue;
+        else
+            return ttValue * (50 - (rule50 - tte_rule50)) / 54;
     }
 
     // Step 5. Tablebases probe
