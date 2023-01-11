@@ -1206,7 +1206,7 @@ moves_loop: // When in check, search starts here
                     (ss+1)->pv = pv;
                     (ss+1)->pv[0] = MOVE_NONE;
                   }
-                  value = -search<PvNode ? PV : NonPV>(pos, ss+1, -(alpha+1), -alpha, newDepth, !cutNode);
+                  value = -search<PvNode ? PV : NonPV>(pos, ss+1, -(alpha+1), -alpha, newDepth, !PvNode && !cutNode);
                   lmrFullSearch = true;
               }
 
