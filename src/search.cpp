@@ -1201,9 +1201,13 @@ moves_loop: // When in check, search starts here
 
               newDepth += doDeeperSearch - doShallowerSearch + doEvenDeeperSearch;
 
-              if (newDepth > d) {
-                  value = -search<NonPV>(pos, ss+1, -(alpha+1), -alpha, newDepth, !cutNode);
-                  lmrFullSearch = true;
+              if (!PvNode && newDepth > d) {
+                value = -search<NonPV>(pos, ss+1, -(alpha+1), -alpha, newDepth, !cutNode);
+              } else if (newDepth > d) {
+                (ss+1)->pv = pv;
+                (ss+1)->pv[0] = MOVE_NONE;
+                lmrFullSearch = true;
+                value = -search<PV>(pos, ss+1, -beta, -alpha, newDepth, false);
               }
 
               int bonus = value > alpha ?  stat_bonus(newDepth)
@@ -1229,13 +1233,12 @@ moves_loop: // When in check, search starts here
       // For PV nodes only, do a full PV search on the first move or after a fail
       // high (in the latter case search only if value < beta), otherwise let the
       // parent node fail low with value <= alpha and try another move.
-      if (PvNode && (moveCount == 1 || (value > alpha && (rootNode || value < beta))))
+      if (PvNode && !lmrFullSearch && (moveCount == 1 || (value > alpha && (rootNode || value < beta))))
       {
           (ss+1)->pv = pv;
           (ss+1)->pv[0] = MOVE_NONE;
           
-          if (!lmrFullSearch)
-            value = -search<PV>(pos, ss+1, -beta, -alpha,
+          value = -search<PV>(pos, ss+1, -beta, -alpha,
                               std::min(maxNextDepth, newDepth), false);
       }
 
