@@ -1201,13 +1201,13 @@ moves_loop: // When in check, search starts here
 
               newDepth += doDeeperSearch - doShallowerSearch + doEvenDeeperSearch;
 
-              if (!PvNode && newDepth > d) {
-                value = -search<NonPV>(pos, ss+1, -(alpha+1), -alpha, newDepth, !cutNode);
-              } else if (newDepth > d) {
-                (ss+1)->pv = pv;
-                (ss+1)->pv[0] = MOVE_NONE;
-                lmrFullSearch = true;
-                value = -search<PV>(pos, ss+1, -beta, -alpha, newDepth, false);
+              if (newDepth > d) {
+                  if (PvNode) {
+                    (ss+1)->pv = pv;
+                    (ss+1)->pv[0] = MOVE_NONE;
+                  }
+                  value = -search<PvNode ? PV : NonPV>(pos, ss+1, -(alpha+1), -alpha, newDepth, !cutNode);
+                  lmrFullSearch = true;
               }
 
               int bonus = value > alpha ?  stat_bonus(newDepth)
@@ -1237,7 +1237,6 @@ moves_loop: // When in check, search starts here
       {
           (ss+1)->pv = pv;
           (ss+1)->pv[0] = MOVE_NONE;
-          
           value = -search<PV>(pos, ss+1, -beta, -alpha,
                               std::min(maxNextDepth, newDepth), false);
       }
