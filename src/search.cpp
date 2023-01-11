@@ -1254,7 +1254,7 @@ moves_loop: // When in check, search starts here
           rm.averageScore = rm.averageScore != -VALUE_INFINITE ? (2 * value + rm.averageScore) / 3 : value;
 
           // PV move or new best move?
-          if (moveCount == 1 || value > alpha)
+          if (moveCount == 1 || value >= alpha)
           {
               rm.score =  rm.uciScore = value;
               rm.selDepth = thisThread->selDepth;
@@ -1289,11 +1289,11 @@ moves_loop: // When in check, search starts here
               rm.score = -VALUE_INFINITE;
       }
 
-      if (value > bestValue)
+      if (value >= bestValue)
       {
           bestValue = value;
 
-          if (value > alpha)
+          if (value >= alpha)
           {
               bestMove = move;
 
