@@ -62,9 +62,8 @@ namespace {
   enum NodeType { NonPV, PV, Root };
 
   // Futility margin
-  Value futility_margin(Depth d, bool improving, const Thread* thisThread) {
-    int threadOffset = (thisThread->id() % 2 == 0 ? 1 : -1) * (((thisThread->id() + 1) / 2) % 5);
-    return Value(158 * (d - improving + threadOffset));
+  Value futility_margin(Depth d, bool improving) {
+    return Value(158 * (d - improving));
   }
 
   // Reductions lookup table, initialized at startup
@@ -75,9 +74,10 @@ namespace {
     return (r + 1460 - int(delta) * 1024 / int(rootDelta)) / 1024 + (!i && r > 937);
   }
 
-  constexpr int futility_move_count(bool improving, Depth depth) {
-    return improving ? (3 + depth * depth)
-                     : (3 + depth * depth) / 2;
+  constexpr int futility_move_count(bool improving, Depth depth, size_t threadId) {
+    int threadOffset = (threadId % 2 == 0 ? 1 : -1) * (((threadId + 1) / 2) % 5);
+    return improving ? (3 + depth * depth + threadOffset)
+                     : (3 + depth * depth + threadOffset) / 2;
   }
 
   // History and stats update bonus, based on depth
@@ -787,7 +787,7 @@ namespace {
     // The depth condition is important for mate finding.
     if (   !ss->ttPv
         &&  depth < 8
-        &&  eval - futility_margin(depth, improving, pos.this_thread()) - (ss-1)->statScore / 304 >= beta
+        &&  eval - futility_margin(depth, improving) - (ss-1)->statScore / 304 >= beta
         &&  eval >= beta
         &&  eval < 28580) // larger than VALUE_KNOWN_WIN, but smaller than TB wins
         return eval;
@@ -993,7 +993,7 @@ moves_loop: // When in check, search starts here
           && bestValue > VALUE_TB_LOSS_IN_MAX_PLY)
       {
           // Skip quiet moves if movecount exceeds our FutilityMoveCount threshold (~8 Elo)
-          moveCountPruning = moveCount >= futility_move_count(improving, depth);
+          moveCountPruning = moveCount >= futility_move_count(improving, depth, pos.this_thread()->id());
 
           // Reduced depth of the next LMR search
           int lmrDepth = std::max(newDepth - reduction(improving, depth, moveCount, delta, thisThread->rootDelta), 0);
