@@ -58,6 +58,7 @@ Thread::~Thread() {
 void Thread::clear() {
 
   counterMoves.fill(MOVE_NONE);
+  drawSearchHistory.fill(VALUE_NONE);
   mainHistory.fill(0);
   captureHistory.fill(0);
   previousDepth = 0;
@@ -200,7 +201,7 @@ void ThreadPool::start_thinking(Position& pos, StateListPtr& states,
   // since they are read-only.
   for (Thread* th : threads)
   {
-      th->nodes = th->tbHits = th->nmpMinPly = th->bestMoveChanges = 0;
+      th->nodes = th->tbHits = th->nmpMinPly = th->bestMoveChanges = th->drawSearchPly = 0;
       th->rootDepth = th->completedDepth = 0;
       th->rootMoves = rootMoves;
       th->rootPos.set(pos.fen(), pos.is_chess960(), &th->rootState, th);

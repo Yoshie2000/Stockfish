@@ -62,7 +62,7 @@ public:
   size_t pvIdx, pvLast;
   RunningAverage complexityAverage;
   std::atomic<uint64_t> nodes, tbHits, bestMoveChanges;
-  int selDepth, nmpMinPly;
+  int selDepth, nmpMinPly, drawSearchPly;
   Color nmpColor;
   Value bestValue, optimism[COLOR_NB];
 
@@ -72,6 +72,7 @@ public:
   Depth rootDepth, completedDepth, previousDepth;
   Value rootDelta;
   CounterMoveHistory counterMoves;
+  DrawSearchHistory drawSearchHistory;
   ButterflyHistory mainHistory;
   CapturePieceToHistory captureHistory;
   ContinuationHistory continuationHistory[2][2];
