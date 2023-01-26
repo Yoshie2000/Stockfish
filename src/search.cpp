@@ -321,6 +321,9 @@ void Thread::search() {
          && !Threads.stop
          && !(Limits.depth && mainThread && rootDepth > Limits.depth))
   {
+
+      drawSearchHistory.fill(VALUE_NONE);
+
       // Age out PV variability metric
       if (mainThread)
           totBestMoveChanges /= 2;
@@ -523,12 +526,6 @@ namespace {
     constexpr bool PvNode = nodeType != NonPV;
     constexpr bool rootNode = nodeType == Root;
     const Depth maxNextDepth = rootNode ? depth : depth + 1;
-
-    if (    pos.this_thread()->drawSearchPly > 0
-        && (pos.has_repeated() || pos.rule50_count() > 20))
-    {
-        return value_draw(pos.this_thread());
-    }
 
     // Check if we have an upcoming move which draws by repetition, or
     // if the opponent had an alternative move earlier to this position.
@@ -796,7 +793,6 @@ namespace {
 
     // Step 9. Null move search with verification search (~35 Elo)
     if (   !PvNode
-        && thisThread->drawSearchPly == 0
         && (ss-1)->currentMove != MOVE_NULL
         && (ss-1)->statScore < 18200
         &&  eval >= beta
@@ -1242,28 +1238,29 @@ moves_loop: // When in check, search starts here
       }
 
       // Draw search
-      Value drawValue = thisThread->drawSearchHistory[(int) newDepth][from_sq(move)][to_sq(move)];
-      if (     !excludedMove
-            &&  PvNode
-            && (drawValue == VALUE_NONE || abs(drawValue) <= 50)
-            &&  abs(value) < VALUE_KNOWN_WIN
-            &&  abs(value) > 100
+      /*if (PvNode) {
+        pos.this_thread()->drawSearchValue = VALUE_NONE;
+        Value drawValue = thisThread->drawSearchHistory[(int) newDepth][from_sq(move)][to_sq(move)];
+      
+        if (    abs(value) < VALUE_KNOWN_WIN
+            &&  abs(value) > UCI::NormalizeToPawnValue
+            && (drawValue == VALUE_NONE || abs(drawValue) < UCI::NormalizeToPawnValue)
             &&  pos.game_ply() > 20
-            &&  pos.rule50_count() == 0
-            &&  thisThread->nmpMinPly == 0
-            &&  thisThread->drawSearchPly == 0) {
-        
-        if (drawValue == VALUE_NONE) {
-            thisThread->drawSearchPly = pos.game_ply();
-            drawValue = -search<NonPV>(pos, ss+1, -beta, -alpha, newDepth, !cutNode);
-            thisThread->drawSearchPly = 0;
-        }
+            &&  thisThread->nmpMinPly == 0) {
+            
+            if (drawValue == VALUE_NONE) {
+                thisThread->drawSearchPly = pos.game_ply();
+                drawValue = -search<NonPV>(pos, ss+1, -beta, -alpha, newDepth, !cutNode);
+                thisThread->drawSearchPly = 0;
+            }
 
-        if (abs(drawValue) <= 50) {
-            value = 20 * value / 100 + 80 * drawValue / 100;
+            if (abs(drawValue) < UCI::NormalizeToPawnValue) {
+                pos.this_thread()->drawSearchValue = drawValue;
+            }
+            //std::cerr << pos.this_thread()->drawSearchValue << " " << drawValue << " " << newDepth << std::endl;
+            thisThread->drawSearchHistory[(int) newDepth][from_sq(move)][to_sq(move)] = drawValue;
         }
-        thisThread->drawSearchHistory[(int) newDepth][from_sq(move)][to_sq(move)] = drawValue;
-      }
+      }*/
 
       // Step 19. Undo move
       pos.undo_move(move);

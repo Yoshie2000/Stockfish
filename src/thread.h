@@ -65,6 +65,7 @@ public:
   int selDepth, nmpMinPly, drawSearchPly;
   Color nmpColor;
   Value bestValue, optimism[COLOR_NB];
+  Value drawSearchValue = VALUE_NONE;
 
   Position rootPos;
   StateInfo rootState;
