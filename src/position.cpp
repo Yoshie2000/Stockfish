@@ -776,6 +776,7 @@ void Position::do_move(Move m, StateInfo& newSt, bool givesCheck) {
 
       // Reset rule 50 counter
       st->rule50 = 0;
+      st->has_repeated = false;
   }
 
   // Update hash key
@@ -855,6 +856,7 @@ void Position::do_move(Move m, StateInfo& newSt, bool givesCheck) {
 
       // Reset rule 50 draw counter
       st->rule50 = 0;
+      st->has_repeated = false;
   }
 
   // Set capture piece
@@ -885,6 +887,7 @@ void Position::do_move(Move m, StateInfo& newSt, bool givesCheck) {
           if (stp->key == st->key)
           {
               st->repetition = stp->repetition ? -i : i;
+              st->has_repeated = true;
               break;
           }
       }
@@ -1024,6 +1027,7 @@ void Position::do_null_move(StateInfo& newSt) {
   set_check_info(st);
 
   st->repetition = 0;
+  st->has_repeated = false;
 
   assert(pos_is_ok());
 }
@@ -1173,10 +1177,14 @@ bool Position::see_ge(Move m, Value threshold) const {
 /// or by repetition. It does not detect stalemates.
 
 bool Position::is_draw(int ply) const {
-    if (this_thread()->drawSearchPly > 0 && (has_repeated() || rule50_count() > 25))
-        return true;
+  int rule50_cutoff = 99;
+    if (this_thread()->drawSearchPly > 0) {
+        rule50_cutoff = 20;
+        if (has_repeated())
+            return true;
+    }
 
-  if (st->rule50 > 99 && (!checkers() || MoveList<LEGAL>(*this).size()))
+  if (st->rule50 > rule50_cutoff && (!checkers() || MoveList<LEGAL>(*this).size()))
       return true;
 
   // Return a draw score if a position repeats once earlier but strictly
@@ -1189,17 +1197,7 @@ bool Position::is_draw(int ply) const {
 // of positions since the last capture or pawn move.
 
 bool Position::has_repeated() const {
-
-    StateInfo* stc = st;
-    int end = std::min(st->rule50, st->pliesFromNull);
-    while (end-- >= 4)
-    {
-        if (stc->repetition)
-            return true;
-
-        stc = stc->previous;
-    }
-    return false;
+    return st->has_repeated;
 }
 
 

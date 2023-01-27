@@ -1091,7 +1091,7 @@ Value Eval::evaluate(const Position& pos, int* complexity) {
     v = v * (50 - pos.rule50_count()) / 54;
 
   if (pos.this_thread()->drawSearchValue != VALUE_NONE)
-    v = (50 * v + 50 * pos.this_thread()->drawSearchValue) / 100;
+    v = (20 * v + 80 * pos.this_thread()->drawSearchValue) / 100;
 
   // Guarantee evaluation does not hit the tablebase range
   v = std::clamp(v, VALUE_TB_LOSS_IN_MAX_PLY + 1, VALUE_TB_WIN_IN_MAX_PLY - 1);

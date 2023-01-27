@@ -623,7 +623,7 @@ namespace {
     // search to overwrite a previous full search TT value, so we use a different
     // position key in case of an excluded move.
     excludedMove = ss->excludedMove;
-    posKey = excludedMove == MOVE_NONE ? pos.key() : pos.key() ^ make_key(excludedMove);
+    posKey = excludedMove == MOVE_NONE && thisThread->drawSearchPly == 0 ? pos.key() : excludedMove == MOVE_NONE ? pos.key() ^ make_key(excludedMove) : ~pos.key();
     tte = TT.probe(posKey, ss->ttHit);
     ttValue = ss->ttHit ? value_from_tt(tte->value(), ss->ply, pos.rule50_count()) : VALUE_NONE;
     ttMove =  rootNode ? thisThread->rootMoves[thisThread->pvIdx].pv[0]
@@ -1237,31 +1237,6 @@ moves_loop: // When in check, search starts here
                               std::min(maxNextDepth, newDepth), false);
       }
 
-      // Draw search
-      /*if (PvNode) {
-        pos.this_thread()->drawSearchValue = VALUE_NONE;
-        Value drawValue = thisThread->drawSearchHistory[(int) newDepth][from_sq(move)][to_sq(move)];
-      
-        if (    abs(value) < VALUE_KNOWN_WIN
-            &&  abs(value) > UCI::NormalizeToPawnValue
-            && (drawValue == VALUE_NONE || abs(drawValue) < UCI::NormalizeToPawnValue)
-            &&  pos.game_ply() > 20
-            &&  thisThread->nmpMinPly == 0) {
-            
-            if (drawValue == VALUE_NONE) {
-                thisThread->drawSearchPly = pos.game_ply();
-                drawValue = -search<NonPV>(pos, ss+1, -beta, -alpha, newDepth, !cutNode);
-                thisThread->drawSearchPly = 0;
-            }
-
-            if (abs(drawValue) < UCI::NormalizeToPawnValue) {
-                pos.this_thread()->drawSearchValue = drawValue;
-            }
-            //std::cerr << pos.this_thread()->drawSearchValue << " " << drawValue << " " << newDepth << std::endl;
-            thisThread->drawSearchHistory[(int) newDepth][from_sq(move)][to_sq(move)] = drawValue;
-        }
-      }*/
-
       // Step 19. Undo move
       pos.undo_move(move);
 
@@ -1360,6 +1335,30 @@ moves_loop: // When in check, search starts here
           else if (!capture && quietCount < 64)
               quietsSearched[quietCount++] = move;
       }
+    }
+
+    // Draw search
+    if (PvNode) {
+        pos.this_thread()->drawSearchValue = VALUE_NONE;
+        Value drawValue = thisThread->drawSearchHistory[depth - 1][from_sq(move)][to_sq(move)];
+      
+        if (    abs(bestValue) < VALUE_KNOWN_WIN
+            &&  abs(bestValue) > UCI::NormalizeToPawnValue
+            && (drawValue == VALUE_NONE || abs(drawValue) < UCI::NormalizeToPawnValue)
+            &&  thisThread->nmpMinPly == 0) {
+            
+            if (drawValue == VALUE_NONE) {
+                thisThread->drawSearchPly = pos.game_ply();
+                drawValue = -search<NonPV>(pos, ss+1, -beta, -alpha, depth - 1, !cutNode);
+                thisThread->drawSearchPly = 0;
+            }
+
+            if (abs(drawValue) < UCI::NormalizeToPawnValue) {
+                pos.this_thread()->drawSearchValue = drawValue;
+            }
+            //std::cerr << pos.this_thread()->drawSearchValue << " " << drawValue << " " << newDepth << std::endl;
+            thisThread->drawSearchHistory[depth - 1][from_sq(move)][to_sq(move)] = drawValue;
+        }
     }
 
     // The following condition would detect a stop only after move loop has been
