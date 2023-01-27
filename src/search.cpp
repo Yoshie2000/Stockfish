@@ -1338,7 +1338,7 @@ moves_loop: // When in check, search starts here
     }
 
     // Draw search
-    if (PvNode) {
+    if (PvNode && pos.rule50_count() == 0) {
         pos.this_thread()->drawSearchValue = VALUE_NONE;
         Value drawValue = thisThread->drawSearchHistory[depth - 1][from_sq(move)][to_sq(move)];
       
