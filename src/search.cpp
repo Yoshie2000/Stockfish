@@ -1183,7 +1183,6 @@ moves_loop: // When in check, search starts here
       // been searched. In general we would like to reduce them, but there are many
       // cases where we extend a son if it has good chances to be "interesting".
       if (    depth >= 2
-          && (!PvNode || moveCount > 1) // In cases where PV full search is guaranteed, skip lmr
           &&  moveCount > 1 + (PvNode && ss->ply <= 1)
           && (   !ss->ttPv
               || !capture
@@ -1197,7 +1196,7 @@ moves_loop: // When in check, search starts here
           value = -search<NonPV>(pos, ss+1, -(alpha+1), -alpha, d, true);
 
           // Do full depth search when reduced LMR search fails high
-          if (value > alpha && d < newDepth)
+          if (value > alpha)
           {
               // Adjust full depth search based on LMR results - if result
               // was good enough search deeper, if it was bad enough search shallower
