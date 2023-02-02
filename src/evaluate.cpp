@@ -1052,6 +1052,8 @@ Value Eval::evaluate(const Position& pos, int* complexity) {
 
   Value v;
   Value psq = pos.psq_eg_stm();
+  Color stm = pos.side_to_move();
+  Value optimism = pos.this_thread()->optimism[stm];
 
   // We use the much less accurate but faster Classical eval when the NNUE
   // option is set to false. Otherwise we use the NNUE eval unless the
@@ -1064,9 +1066,6 @@ Value Eval::evaluate(const Position& pos, int* complexity) {
   {
       int nnueComplexity;
       int scale = 1076 + 96 * pos.non_pawn_material() / 5120;
-
-      Color stm = pos.side_to_move();
-      Value optimism = pos.this_thread()->optimism[stm];
 
       Value nnue = NNUE::evaluate(pos, true, &nnueComplexity);
 
@@ -1085,7 +1084,10 @@ Value Eval::evaluate(const Position& pos, int* complexity) {
   }
 
   // Damp down the evaluation linearly when shuffling
-  v = v * (200 - pos.rule50_count()) / 214;
+  if (optimism > 50)
+    v = v * (200 - pos.rule50_count()) / 214;
+  else
+    v = v * (150 - pos.rule50_count()) / 160;
 
   // Guarantee evaluation does not hit the tablebase range
   v = std::clamp(v, VALUE_TB_LOSS_IN_MAX_PLY + 1, VALUE_TB_WIN_IN_MAX_PLY - 1);
