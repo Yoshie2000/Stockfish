@@ -1144,7 +1144,7 @@ moves_loop: // When in check, search starts here
           r -= 2;
 
       // Increase reduction if 50 move rule is high, not reset with this move, and the history is not good
-      if (pos.rule50_count() >= 80 && !capture && type_of(movedPiece) != PAWN && (*contHist[0])[movedPiece][to_sq(move)] <= 500)
+      if (pos.rule50_count() >= 80 && !capture && type_of(movedPiece) != PAWN && (*contHist[0])[movedPiece][to_sq(move)] <= 200)
         r++;
 
       // Decrease reduction if opponent's move count is high (~1 Elo)
