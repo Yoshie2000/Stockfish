@@ -552,7 +552,7 @@ namespace {
     Key posKey;
     Move ttMove, move, excludedMove, bestMove;
     Depth extension, newDepth;
-    Value bestValue, value, ttValue, eval, nnueEval, maxValue, probCutBeta;
+    Value bestValue, value, ttValue, eval, maxValue, probCutBeta;
     bool givesCheck, improving, priorCapture, singularQuietLMR;
     bool capture, moveCountPruning, ttCapture;
     Piece movedPiece;
@@ -723,7 +723,7 @@ namespace {
     if (ss->inCheck)
     {
         // Skip early pruning when in check
-        ss->staticEval = eval = nnueEval = VALUE_NONE;
+        ss->staticEval = eval = ss->nnueEval = VALUE_NONE;
         improving = false;
         improvement = 0;
         complexity = 0;
@@ -733,11 +733,11 @@ namespace {
         // excludeMove implies that we had a ttHit on the containing non-excluded search with ss->staticEval filled from TT
         // However static evals from the TT aren't good enough (-13 elo), presumably due to changing optimism context
         // Recalculate value with current optimism (without updating thread avgComplexity)
-        ss->staticEval = eval = evaluate(pos, VALUE_NONE, &nnueEval, &complexity);
+        ss->staticEval = eval = evaluate(pos, VALUE_NONE, &ss->nnueEval, &complexity);
     }
     else if (ss->ttHit)
     {
-        ss->staticEval = eval = evaluate(pos, tte->eval(), &nnueEval, &complexity);
+        ss->staticEval = eval = evaluate(pos, tte->eval(), &ss->nnueEval, &complexity);
         thisThread->complexityAverage.update(complexity);
 
         // ttValue can be used as a better position evaluation (~7 Elo)
@@ -747,11 +747,11 @@ namespace {
     }
     else
     {
-        ss->staticEval = eval = evaluate(pos, VALUE_NONE, &nnueEval, &complexity);
+        ss->staticEval = eval = evaluate(pos, VALUE_NONE, &ss->nnueEval, &complexity);
         thisThread->complexityAverage.update(complexity);
 
         // Save static evaluation into transposition table
-        tte->save(posKey, VALUE_NONE, ss->ttPv, BOUND_NONE, DEPTH_NONE, MOVE_NONE, nnueEval);
+        tte->save(posKey, VALUE_NONE, ss->ttPv, BOUND_NONE, DEPTH_NONE, MOVE_NONE, ss->nnueEval);
     }
 
     // Use static evaluation difference to improve quiet move ordering (~4 Elo)
@@ -885,7 +885,7 @@ namespace {
                 if (value >= probCutBeta)
                 {
                     // Save ProbCut data into transposition table
-                    tte->save(posKey, value_to_tt(value, ss->ply), ss->ttPv, BOUND_LOWER, depth - 3, move, nnueEval);
+                    tte->save(posKey, value_to_tt(value, ss->ply), ss->ttPv, BOUND_LOWER, depth - 3, move, ss->nnueEval);
                     return value;
                 }
             }
@@ -1389,7 +1389,7 @@ moves_loop: // When in check, search starts here
         tte->save(posKey, value_to_tt(bestValue, ss->ply), ss->ttPv,
                   bestValue >= beta ? BOUND_LOWER :
                   PvNode && bestMove ? BOUND_EXACT : BOUND_UPPER,
-                  depth, bestMove, nnueEval);
+                  depth, bestMove, ss->nnueEval);
 
     assert(bestValue > -VALUE_INFINITE && bestValue < VALUE_INFINITE);
 
@@ -1418,7 +1418,7 @@ moves_loop: // When in check, search starts here
     Key posKey;
     Move ttMove, move, bestMove;
     Depth ttDepth;
-    Value bestValue, value, nnueEval, ttValue, futilityValue, futilityBase;
+    Value bestValue, value, ttValue, futilityValue, futilityBase;
     bool pvHit, givesCheck, capture;
     int moveCount;
 
@@ -1462,14 +1462,14 @@ moves_loop: // When in check, search starts here
     // Evaluate the position statically
     if (ss->inCheck)
     {
-        ss->staticEval = nnueEval = VALUE_NONE;
+        ss->staticEval = ss->nnueEval = VALUE_NONE;
         bestValue = futilityBase = -VALUE_INFINITE;
     }
     else
     {
         if (ss->ttHit)
         {
-            ss->staticEval = bestValue = evaluate(pos, tte->eval(), &nnueEval);
+            ss->staticEval = bestValue = evaluate(pos, tte->eval(), &ss->nnueEval);
 
             // ttValue can be used as a better position evaluation (~13 Elo)
             if (    ttValue != VALUE_NONE
@@ -1479,10 +1479,10 @@ moves_loop: // When in check, search starts here
         else {
             // In case of null move search use previous static eval with a different sign
             ss->staticEval = bestValue =
-            (ss-1)->currentMove != MOVE_NULL ? evaluate(pos, VALUE_NONE, &nnueEval)
+            (ss-1)->currentMove != MOVE_NULL ? evaluate(pos, VALUE_NONE, &ss->nnueEval)
                                              : -(ss-1)->staticEval;
             if ((ss-1)->currentMove == MOVE_NULL)
-                nnueEval = ss->staticEval;
+                ss->nnueEval = (ss-1)->nnueEval;
         }
 
         // Stand pat. Return immediately if static value is at least beta
@@ -1491,7 +1491,7 @@ moves_loop: // When in check, search starts here
             // Save gathered info in transposition table
             if (!ss->ttHit)
                 tte->save(posKey, value_to_tt(bestValue, ss->ply), false, BOUND_LOWER,
-                          DEPTH_NONE, MOVE_NONE, nnueEval);
+                          DEPTH_NONE, MOVE_NONE, ss->nnueEval);
 
             return bestValue;
         }
@@ -1625,7 +1625,7 @@ moves_loop: // When in check, search starts here
     // Save gathered info in transposition table
     tte->save(posKey, value_to_tt(bestValue, ss->ply), pvHit,
               bestValue >= beta ? BOUND_LOWER : BOUND_UPPER,
-              ttDepth, bestMove, nnueEval);
+              ttDepth, bestMove, ss->nnueEval);
 
     assert(bestValue > -VALUE_INFINITE && bestValue < VALUE_INFINITE);
 
