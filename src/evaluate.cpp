@@ -1067,7 +1067,7 @@ Value Eval::evaluate(const Position& pos, Value ttNnueEval, Value* outNnueEval, 
   }
   else
   {
-      int nnueComplexity = abs(ttNnueEval - psq);
+      int nnueComplexity = pos.this_thread()->complexityAverage.value();
       int scale = 1076 + 96 * pos.non_pawn_material() / 5120;
 
       Color stm = pos.side_to_move();
