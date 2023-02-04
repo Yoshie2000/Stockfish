@@ -1048,7 +1048,7 @@ make_v:
 /// evaluate() is the evaluator for the outer world. It returns a static
 /// evaluation of the position from the point of view of the side to move.
 
-Value Eval::evaluate(const Position& pos, int* complexity) {
+Value Eval::evaluate(const Position& pos, int* complexity, Value ttNnueEval, Value* outNnueEval) {
 
   Value v;
   Value psq = pos.psq_eg_stm();
@@ -1062,13 +1062,16 @@ Value Eval::evaluate(const Position& pos, int* complexity) {
       v = Evaluation<NO_TRACE>(pos).value();
   else
   {
-      int nnueComplexity;
+      int nnueComplexity = (Value) pos.this_thread()->complexityAverage.value();
       int scale = 1076 + 96 * pos.non_pawn_material() / 5120;
 
       Color stm = pos.side_to_move();
       Value optimism = pos.this_thread()->optimism[stm];
 
-      Value nnue = NNUE::evaluate(pos, true, &nnueComplexity);
+      Value nnue = ttNnueEval == VALUE_NONE ? NNUE::evaluate(pos, true, &nnueComplexity) : ttNnueEval;
+
+      if (outNnueEval)
+          *outNnueEval = nnue;
 
       // Blend nnue complexity with (semi)classical complexity
       nnueComplexity = (  406 * nnueComplexity
@@ -1093,6 +1096,9 @@ Value Eval::evaluate(const Position& pos, int* complexity) {
   // When not using NNUE, return classical complexity to caller
   if (complexity && useClassical)
       *complexity = abs(v - psq);
+  
+  if (outNnueEval && useClassical)
+      *outNnueEval = v;
 
   return v;
 }
