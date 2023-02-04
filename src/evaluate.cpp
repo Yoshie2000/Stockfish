@@ -1048,7 +1048,7 @@ make_v:
 /// evaluate() is the evaluator for the outer world. It returns a static
 /// evaluation of the position from the point of view of the side to move.
 
-Value Eval::evaluate(const Position& pos, int* complexity, Value ttNnueEval, Value* outNnueEval) {
+Value Eval::evaluate(const Position& pos, Value ttNnueEval, Value* outNnueEval, int* complexity) {
 
   Value v;
   Value psq = pos.psq_eg_stm();

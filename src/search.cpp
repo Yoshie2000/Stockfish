@@ -733,11 +733,11 @@ namespace {
         // excludeMove implies that we had a ttHit on the containing non-excluded search with ss->staticEval filled from TT
         // However static evals from the TT aren't good enough (-13 elo), presumably due to changing optimism context
         // Recalculate value with current optimism (without updating thread avgComplexity)
-        ss->staticEval = eval = evaluate(pos, &complexity, VALUE_NONE, &nnueEval);
+        ss->staticEval = eval = evaluate(pos, VALUE_NONE, &nnueEval, &complexity);
     }
     else if (ss->ttHit)
     {
-        ss->staticEval = eval = evaluate(pos, &complexity, tte->eval(), &nnueEval);
+        ss->staticEval = eval = evaluate(pos, tte->eval(), &nnueEval, &complexity);
         thisThread->complexityAverage.update(complexity);
 
         // ttValue can be used as a better position evaluation (~7 Elo)
@@ -747,7 +747,7 @@ namespace {
     }
     else
     {
-        ss->staticEval = eval = evaluate(pos, &complexity, VALUE_NONE, &nnueEval);
+        ss->staticEval = eval = evaluate(pos, VALUE_NONE, &nnueEval, &complexity);
         thisThread->complexityAverage.update(complexity);
 
         // Save static evaluation into transposition table
@@ -1418,7 +1418,8 @@ moves_loop: // When in check, search starts here
     Key posKey;
     Move ttMove, move, bestMove;
     Depth ttDepth;
-    Value bestValue, value, nnueEval, ttValue, futilityValue, futilityBase;
+    Value bestValue, value, ttValue, futilityValue, futilityBase;
+    Value nnueEval = VALUE_NONE;
     bool pvHit, givesCheck, capture;
     int moveCount;
 
@@ -1469,7 +1470,7 @@ moves_loop: // When in check, search starts here
     {
         if (ss->ttHit)
         {
-            ss->staticEval = bestValue = evaluate(pos, nullptr, tte->eval(), &nnueEval);
+            ss->staticEval = bestValue = evaluate(pos, tte->eval(), &nnueEval);
 
             // ttValue can be used as a better position evaluation (~13 Elo)
             if (    ttValue != VALUE_NONE
@@ -1479,7 +1480,7 @@ moves_loop: // When in check, search starts here
         else
             // In case of null move search use previous static eval with a different sign
             ss->staticEval = bestValue =
-            (ss-1)->currentMove != MOVE_NULL ? evaluate(pos, nullptr, VALUE_NONE, &nnueEval)
+            (ss-1)->currentMove != MOVE_NULL ? evaluate(pos, VALUE_NONE, &nnueEval)
                                              : -(ss-1)->staticEval;
 
         // Stand pat. Return immediately if static value is at least beta
