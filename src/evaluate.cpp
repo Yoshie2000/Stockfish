@@ -1062,13 +1062,16 @@ Value Eval::evaluate(const Position& pos, Value ttNnueEval, Value* outNnueEval, 
       v = Evaluation<NO_TRACE>(pos).value();
   else
   {
-      int nnueComplexity = (Value) pos.this_thread()->complexityAverage.value();
+      int nnueComplexity;
       int scale = 1076 + 96 * pos.non_pawn_material() / 5120;
 
       Color stm = pos.side_to_move();
       Value optimism = pos.this_thread()->optimism[stm];
 
       Value nnue = ttNnueEval == VALUE_NONE ? NNUE::evaluate(pos, true, &nnueComplexity) : ttNnueEval;
+      if (ttNnueEval != VALUE_NONE) {
+        nnueComplexity = abs(ttNnueEval - psq);
+      }
 
       if (outNnueEval)
           *outNnueEval = nnue;
