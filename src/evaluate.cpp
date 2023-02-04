@@ -1059,7 +1059,12 @@ Value Eval::evaluate(const Position& pos, Value ttNnueEval, Value* outNnueEval, 
   bool useClassical = !useNNUE || (pos.count<ALL_PIECES>() > 7 && abs(psq) > 1781);
 
   if (useClassical)
-      v = Evaluation<NO_TRACE>(pos).value();
+  {
+      v = ttNnueEval == VALUE_NONE ? Evaluation<NO_TRACE>(pos).value() : ttNnueEval;
+      
+      if (outNnueEval)
+          *outNnueEval = v;
+  }
   else
   {
       int nnueComplexity;
@@ -1099,9 +1104,6 @@ Value Eval::evaluate(const Position& pos, Value ttNnueEval, Value* outNnueEval, 
   // When not using NNUE, return classical complexity to caller
   if (complexity && useClassical)
       *complexity = abs(v - psq);
-  
-  if (outNnueEval && useClassical)
-      *outNnueEval = v;
 
   return v;
 }

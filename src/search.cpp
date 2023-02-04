@@ -1480,9 +1480,7 @@ moves_loop: // When in check, search starts here
             // In case of null move search use previous static eval with a different sign
             ss->staticEval = bestValue =
             (ss-1)->currentMove != MOVE_NULL ? evaluate(pos, VALUE_NONE, &ss->nnueEval)
-                                             : -(ss-1)->staticEval;
-            if ((ss-1)->currentMove == MOVE_NULL)
-                ss->nnueEval = (ss-1)->nnueEval;
+                                             : evaluate(pos, (ss-1)->nnueEval, &ss->nnueEval);
         }
 
         // Stand pat. Return immediately if static value is at least beta
