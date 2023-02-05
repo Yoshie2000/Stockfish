@@ -604,6 +604,7 @@ namespace {
     (ss+1)->excludedMove = bestMove = MOVE_NONE;
     (ss+2)->killers[0]   = (ss+2)->killers[1] = MOVE_NONE;
     (ss+2)->cutoffCnt    = 0;
+    ss->rule50_adjusted  = false;
     ss->doubleExtensions = (ss-1)->doubleExtensions;
     Square prevSq        = to_sq((ss-1)->currentMove);
 
@@ -948,6 +949,8 @@ moves_loop: // When in check, search starts here
                          && ttMove
                          && (tte->bound() & BOUND_UPPER)
                          && tte->depth() >= depth;
+    
+    bool reasonableMoveResetsRule50 = false;
 
     // Step 13. Loop through all pseudo-legal moves until no moves remain
     // or a beta cutoff occurs.
@@ -1258,6 +1261,10 @@ moves_loop: // When in check, search starts here
       // updating best move, PV and TT.
       if (Threads.stop.load(std::memory_order_relaxed))
           return VALUE_ZERO;
+      
+      if ((type_of(movedPiece) == PAWN || capture) && alpha > 0 && value > alpha / 2) {
+        reasonableMoveResetsRule50 = true;
+      }
 
       if (rootNode)
       {
@@ -1309,6 +1316,7 @@ moves_loop: // When in check, search starts here
           if (value > alpha)
           {
               bestMove = move;
+              ss->rule50_adjusted = (ss+1)->rule50_adjusted; // Copy adjusted state from bestMove node
 
               if (PvNode && !rootNode) // Update pv even in fail-high case
                   update_pv(ss->pv, move, (ss+1)->pv);
@@ -1359,6 +1367,13 @@ moves_loop: // When in check, search starts here
     // All legal moves have been searched and if there are no legal moves, it
     // must be a mate or a stalemate. If we are in a singular extension search then
     // return a fail low score.
+
+    // If we need to reset the 50 move rule soon to avoid a draw, but all moves that reset the 50 move rule fall below a certain margin,
+    // scale down bestValue. This can only happen if this branch hasn't been adjusted yet
+    if (!rootNode && bestValue < VALUE_KNOWN_WIN && alpha > 0 && bestValue > 0 && !ss->inCheck && !ss->rule50_adjusted && pos.rule50_count() >= 80 && !reasonableMoveResetsRule50) {
+        bestValue = bestValue * (100 - pos.rule50_count()) / 100;
+        ss->rule50_adjusted = true;
+    }
 
     assert(moveCount || !ss->inCheck || excludedMove || !MoveList<LEGAL>(pos).size());
 
