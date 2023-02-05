@@ -741,8 +741,13 @@ namespace {
         ss->staticEval = eval = tte->eval();
         if (eval == VALUE_NONE)
             ss->staticEval = eval = evaluate(pos, &complexity);
-        else // Fall back to (semi)classical complexity for TT hits, the NNUE complexity is lost
-            complexity = abs(ss->staticEval - pos.psq_eg_stm());
+        else {// Fall back to (semi)classical complexity for TT hits, the NNUE complexity is lost
+            int psq = pos.psq_eg_stm();
+            complexity = (  406 * thisThread->complexityAverage.value()
+                        + 424 * abs(psq - eval)
+                        + int(pos.this_thread()->optimism[us]) * int(psq - eval)
+                        ) / 1024;
+        }
         thisThread->complexityAverage.update(complexity);
 
         // ttValue can be used as a better position evaluation (~7 Elo)
