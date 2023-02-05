@@ -1262,7 +1262,7 @@ moves_loop: // When in check, search starts here
       if (Threads.stop.load(std::memory_order_relaxed))
           return VALUE_ZERO;
       
-      if ((type_of(movedPiece) == PAWN || capture) && alpha > 0 && value > alpha / 2) {
+      if ((type_of(movedPiece) == PAWN || capture) && alpha > 0 && value > alpha * 3 / 4) {
         reasonableMoveResetsRule50 = true;
       }
 
