@@ -49,7 +49,7 @@ struct Stack {
   bool inCheck;
   bool ttPv;
   bool ttHit;
-  int doubleExtensions;
+  int doubleExtensions, rule50extensions;
   int cutoffCnt;
 };
 
