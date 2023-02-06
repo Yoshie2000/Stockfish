@@ -1493,9 +1493,9 @@ moves_loop: // When in check, search starts here
         if (bestValue >= beta)
         {
             // Save gathered info in transposition table
-            if (!ss->ttHit)
+            if (!ss->ttHit && (ss-1)->currentMove != MOVE_NULL)
                 tte->save(posKey, value_to_tt(bestValue, ss->ply), false, BOUND_LOWER,
-                          DEPTH_NONE, MOVE_NONE, (ss-1)->currentMove != MOVE_NULL ? ss->staticEval : VALUE_NONE);
+                          DEPTH_NONE, MOVE_NONE, ss->staticEval);
 
             return bestValue;
         }
@@ -1627,9 +1627,10 @@ moves_loop: // When in check, search starts here
     }
 
     // Save gathered info in transposition table
-    tte->save(posKey, value_to_tt(bestValue, ss->ply), pvHit,
-              bestValue >= beta ? BOUND_LOWER : BOUND_UPPER,
-              ttDepth, bestMove, (ss-1)->currentMove != MOVE_NULL ? ss->staticEval : VALUE_NONE);
+    if ((ss-1)->currentMove != MOVE_NULL)
+        tte->save(posKey, value_to_tt(bestValue, ss->ply), pvHit,
+                bestValue >= beta ? BOUND_LOWER : BOUND_UPPER,
+                ttDepth, bestMove, ss->staticEval);
 
     assert(bestValue > -VALUE_INFINITE && bestValue < VALUE_INFINITE);
 
