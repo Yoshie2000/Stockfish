@@ -847,7 +847,7 @@ namespace {
     probCutBeta = beta + 180 - 54 * improving;
 
     if (ss->ttHit && tte->depth() >= depth - 3 && tte->bound() == BOUND_UPPER && ttValue < probCutBeta) {
-        probCutBeta = ttValue;
+        probCutBeta = ttValue + 180 - 54 * improving;
     }
 
     // Step 10. ProbCut (~10 Elo)
