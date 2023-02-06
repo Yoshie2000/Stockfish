@@ -846,6 +846,10 @@ namespace {
 
     probCutBeta = beta + 180 - 54 * improving;
 
+    if (ss->ttHit && tte->depth() >= depth - 3 && tte->bound() == BOUND_UPPER && ttValue < probCutBeta) {
+        probCutBeta = ttValue;
+    }
+
     // Step 10. ProbCut (~10 Elo)
     // If we have a good enough capture and a reduced search returns a value
     // much above beta, we can (almost) safely prune the previous move.
