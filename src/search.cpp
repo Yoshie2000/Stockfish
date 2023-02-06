@@ -846,10 +846,6 @@ namespace {
 
     probCutBeta = beta + 180 - 54 * improving;
 
-    if (ss->ttHit && tte->depth() >= depth - 3 && tte->bound() == BOUND_UPPER && ttValue < probCutBeta) {
-        probCutBeta = ttValue + 180 - 54 * improving;
-    }
-
     // Step 10. ProbCut (~10 Elo)
     // If we have a good enough capture and a reduced search returns a value
     // much above beta, we can (almost) safely prune the previous move.
@@ -1499,7 +1495,7 @@ moves_loop: // When in check, search starts here
             // Save gathered info in transposition table
             if (!ss->ttHit)
                 tte->save(posKey, value_to_tt(bestValue, ss->ply), false, BOUND_LOWER,
-                          DEPTH_NONE, MOVE_NONE, ss->staticEval);
+                          DEPTH_NONE, MOVE_NONE, (ss-1)->currentMove != MOVE_NULL ? ss->staticEval : VALUE_NONE);
 
             return bestValue;
         }
@@ -1633,7 +1629,7 @@ moves_loop: // When in check, search starts here
     // Save gathered info in transposition table
     tte->save(posKey, value_to_tt(bestValue, ss->ply), pvHit,
               bestValue >= beta ? BOUND_LOWER : BOUND_UPPER,
-              ttDepth, bestMove, ss->staticEval);
+              ttDepth, bestMove, (ss-1)->currentMove != MOVE_NULL ? ss->staticEval : VALUE_NONE);
 
     assert(bestValue > -VALUE_INFINITE && bestValue < VALUE_INFINITE);
 
