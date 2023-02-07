@@ -605,7 +605,6 @@ namespace {
     (ss+2)->killers[0]   = (ss+2)->killers[1] = MOVE_NONE;
     (ss+2)->cutoffCnt    = 0;
     ss->doubleExtensions = (ss-1)->doubleExtensions;
-    ss->rule50extensions = (ss-1)->rule50extensions;
     Square prevSq        = to_sq((ss-1)->currentMove);
 
     // Initialize statScore to zero for the grandchildren of the current position.
@@ -1144,11 +1143,9 @@ moves_loop: // When in check, search starts here
           && !likelyFailLow)
           r -= 2;
 
-      // Increase reduction if 50 move rule is not low, not reset with this move, and the history is not good
-      if (ss->rule50extensions <= 5 && pos.rule50_count() >= 20 && !capture && type_of(movedPiece) != PAWN && (*contHist[0])[movedPiece][to_sq(move)] <= 500) {
-        ss->rule50extensions++;
+      // Increase reduction if 50 move rule is high, not reset with this move, and the history is not good
+      if (pos.rule50_count() >= 80 && !capture && type_of(movedPiece) != PAWN && (*contHist[0])[movedPiece][to_sq(move)] <= 750)
         r++;
-      }
 
       // Decrease reduction if opponent's move count is high (~1 Elo)
       if ((ss-1)->moveCount > 7)
