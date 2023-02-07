@@ -994,7 +994,7 @@ namespace {
                                                         + pos.non_pawn_material() / 32;
     };
 
-    if (lazy_skip(LazyThreshold1))
+    if (Eval::useNNUE || lazy_skip(LazyThreshold1))
         goto make_v;
 
     // Main evaluation begins here
