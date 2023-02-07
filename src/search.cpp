@@ -730,11 +730,7 @@ namespace {
         goto moves_loop;
     }
     else if (excludedMove) {
-        // excludeMove implies that we had a ttHit on the containing non-excluded search with ss->staticEval filled from TT
-        // However static evals from the TT aren't good enough (-13 elo), presumably due to changing optimism context
-        // Recalculate value with current optimism (without updating thread avgComplexity)
         eval = ss->staticEval;
-        ss->staticEval = evaluate(pos, &complexity);
     }
     else if (ss->ttHit)
     {
@@ -779,7 +775,7 @@ namespace {
     // Step 7. Razoring (~1 Elo).
     // If eval is really low check with qsearch if it can exceed alpha, if it can't,
     // return a fail low.
-    if (eval < alpha - 394 - 255 * depth * depth)
+    if (!excludedMove && eval < alpha - 394 - 255 * depth * depth)
     {
         value = qsearch<NonPV>(pos, ss, alpha - 1, alpha);
         if (value < alpha)
@@ -789,6 +785,7 @@ namespace {
     // Step 8. Futility pruning: child node (~40 Elo).
     // The depth condition is important for mate finding.
     if (   !ss->ttPv
+        && !excludedMove
         &&  depth < 8
         &&  eval - futility_margin(depth, improving) - (ss-1)->statScore / 304 >= beta
         &&  eval >= beta
