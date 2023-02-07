@@ -780,7 +780,7 @@ namespace {
     // return a fail low.
     if (eval < alpha - 394 - 255 * depth * depth)
     {
-        value = search<NonPV>(pos, ss, alpha - 1, alpha, std::min(depth - 1, 1), !cutNode);
+        value = search<NonPV>(pos, ss, alpha - 1, alpha, std::min(depth - 1, 2), !cutNode);
         if (value < alpha)
             return value;
     }
