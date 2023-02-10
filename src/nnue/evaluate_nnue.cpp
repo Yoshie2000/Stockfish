@@ -164,7 +164,7 @@ namespace Stockfish::Eval::NNUE {
     if (complexity)
         *complexity = abs(psqt - positional) / OutputScale;
     if (nnuePositional)
-        *nnuePositional = positional;
+        *nnuePositional = ((1024 + delta) * positional) / (512 * OutputScale);
 
     // Give more value to positional evaluation when adjusted flag is set
     if (adjusted)
