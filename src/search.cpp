@@ -1063,7 +1063,7 @@ moves_loop: // When in check, search starts here
               &&  tte->depth() >= depth - 3)
           {
               Value singularBeta = ttValue - (3 + (ss->ttPv && !PvNode)) * depth;
-              Depth singularDepth = (depth - 1) / 2;
+              Depth singularDepth = (depth - 1) / 2 + (move == ss->killers[0]);
 
               ss->excludedMove = move;
               // the search with excludedMove will update ss->staticEval
