@@ -1313,14 +1313,17 @@ moves_loop: // When in check, search starts here
 
               if (PvNode && value < beta) // Update alpha! Always alpha < beta
               {
-                  alpha = value;
-
                   // Reduce other moves if we have found at least one score improvement
                   if (   depth > 1
                       && depth < 6
                       && beta  <  VALUE_KNOWN_WIN
-                      && alpha > -VALUE_KNOWN_WIN)
-                      depth -= 1;
+                      && value > -VALUE_KNOWN_WIN) {
+                      // Calculate where we are between alpha & beta (the higher, the closer to beta)
+                      int percentageToBeta = (value - alpha) * 100 / delta;
+                      depth = std::max(1, depth - (1 + (percentageToBeta > 95)));
+                  }
+
+                  alpha = value;
 
                   assert(depth > 0);
               }
