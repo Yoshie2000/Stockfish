@@ -1320,7 +1320,7 @@ moves_loop: // When in check, search starts here
                       && value > -VALUE_KNOWN_WIN) {
                       // Calculate where we are between alpha & beta (the higher, the closer to beta)
                       int percentageToBeta = (value - alpha) * 100 / delta;
-                      bool extraReduction = (percentageToBeta > 97);
+                      bool extraReduction = (percentageToBeta > 95) && moveCount != 1;
                       depth = std::max(1, depth - (1 + extraReduction));
                   }
 
