@@ -1315,7 +1315,7 @@ moves_loop: // When in check, search starts here
               {
                   alpha = value;
                   if (value == beta - 1)
-                    break;
+                    depth -= 1;
 
                   // Reduce other moves if we have found at least one score improvement
                   if (   depth > 1
