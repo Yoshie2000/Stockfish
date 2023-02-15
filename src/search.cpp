@@ -35,6 +35,11 @@
 #include "uci.h"
 #include "syzygy/tbprobe.h"
 
+#include "nnue/nnue_common.h"
+#include "nnue/nnue_architecture.h"
+
+using FeatureSet = Stockfish::Eval::NNUE::FeatureSet;
+
 namespace Stockfish {
 
 namespace Search {
@@ -737,9 +742,22 @@ namespace {
     }
     else if (ss->ttHit)
     {
+        
+        // If the NNUE update cost is getting too expensive, recalculate!
+        StateInfo *posSt = pos.state();
+        int refreshCost = FeatureSet::refresh_cost(pos);
+        int gain = refreshCost;
+        while (posSt->previous && !posSt->accumulator.computed[us])
+        {
+            if (   FeatureSet::requires_refresh(posSt, us)
+                || (gain -= FeatureSet::update_cost(posSt) + 1) < 0)
+            break;
+            posSt = posSt->previous;
+        }
+
         // Never assume anything about values stored in TT
         ss->staticEval = eval = tte->eval();
-        if (eval == VALUE_NONE)
+        if (eval == VALUE_NONE || gain >= refreshCost / 2)
             ss->staticEval = eval = evaluate(pos, &complexity);
         else // Fall back to (semi)classical complexity for TT hits, the NNUE complexity is lost
             complexity = abs(ss->staticEval - pos.psq_eg_stm());
