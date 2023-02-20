@@ -743,6 +743,9 @@ namespace {
             ss->staticEval = eval = evaluate(pos, &complexity);
         else // Fall back to (semi)classical complexity for TT hits, the NNUE complexity is lost
             complexity = abs(ss->staticEval - pos.psq_eg_stm());
+        
+        if (type_of(pos.moved_piece((ss-1)->currentMove)) == KING)
+            evaluate(pos);
 
         // ttValue can be used as a better position evaluation (~7 Elo)
         if (    ttValue != VALUE_NONE
