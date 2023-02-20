@@ -136,6 +136,11 @@ namespace Stockfish::Eval::NNUE {
     return (bool)stream;
   }
 
+  void update_accumulator(const Position& pos) {
+    featureTransformer->update_accumulator<WHITE>(pos);
+    featureTransformer->update_accumulator<BLACK>(pos);
+  }
+
   // Evaluation function. Perform differential calculation.
   Value evaluate(const Position& pos, bool adjusted, int* complexity) {
 

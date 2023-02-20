@@ -337,7 +337,6 @@ namespace Stockfish::Eval::NNUE {
 
 
 
-   private:
     template<Color Perspective>
     void update_accumulator(const Position& pos) const {
 

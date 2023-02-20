@@ -745,7 +745,7 @@ namespace {
             complexity = abs(ss->staticEval - pos.psq_eg_stm());
         
         if (type_of(pos.moved_piece((ss-1)->currentMove)) == KING)
-            evaluate(pos);
+            Eval::NNUE::update_accumulator(pos);
 
         // ttValue can be used as a better position evaluation (~7 Elo)
         if (    ttValue != VALUE_NONE
