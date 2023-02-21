@@ -1763,6 +1763,7 @@ moves_loop: // When in check, search starts here
 
     // Update killers
     bool wasAlreadyKiller = ss->killers[0] == move || ss->killers[1] == move;
+    bonus += 350 * wasAlreadyKiller;
     if (ss->killers[0] != move)
     {
         ss->killers[1] = ss->killers[0];
@@ -1772,7 +1773,7 @@ moves_loop: // When in check, search starts here
     Color us = pos.side_to_move();
     Thread* thisThread = pos.this_thread();
     thisThread->mainHistory[us][from_to(move)] << bonus;
-    update_continuation_histories(ss, pos.moved_piece(move), to_sq(move), bonus + wasAlreadyKiller * 700);
+    update_continuation_histories(ss, pos.moved_piece(move), to_sq(move), bonus);
 
     // Update countermove history
     if (is_ok((ss-1)->currentMove))
