@@ -44,7 +44,7 @@ namespace Eval {
   namespace NNUE {
 
     std::string trace(Position& pos);
-    Value evaluate(const Position& pos, bool adjusted = false, int* complexity = nullptr);
+    Value evaluate(const Position& pos, bool adjusted = false, int* psq = nullptr, int* complexity = nullptr);
 
     void init();
     void verify();
