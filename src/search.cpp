@@ -1312,7 +1312,6 @@ moves_loop: // When in check, search starts here
 
       if (value > bestValue)
       {
-          bestValue = value;
 
           if (value > alpha)
           {
@@ -1323,16 +1322,20 @@ moves_loop: // When in check, search starts here
 
               if (PvNode && value < beta) // Update alpha! Always alpha < beta
               {
-                  alpha = value;
-
                   // Reduce other moves if we have found at least one score improvement
                   if (   depth > 1
                       && depth < 6
                       && beta  <  10534
-                      && alpha > -10534)
-                      depth -= 1;
+                      && alpha > -10534
+                      && value > -10534) {
+                      std::cerr << bestValue << " " << value << " " << alpha << " " << beta << std::endl;
+                      bool extraReduction = bestValue != -VALUE_INFINITE && 100 * (value - bestValue) > 75 * (beta - alpha);
+                      depth -= 1 + extraReduction;
+                  }
 
                   assert(depth > 0);
+
+                  alpha = value;
               }
               else
               {
@@ -1341,6 +1344,8 @@ moves_loop: // When in check, search starts here
                   break;
               }
           }
+
+        bestValue = value;
       }
 
 
