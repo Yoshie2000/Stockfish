@@ -1326,10 +1326,8 @@ moves_loop: // When in check, search starts here
                   if (   depth > 1
                       && depth < 6
                       && beta  <  10534
-                      && alpha > -10534
                       && value > -10534) {
-                      std::cerr << bestValue << " " << value << " " << alpha << " " << beta << std::endl;
-                      bool extraReduction = bestValue != -VALUE_INFINITE && 100 * (value - bestValue) > 75 * (beta - alpha);
+                      bool extraReduction = alpha > -10534 && bestValue != -VALUE_INFINITE && 100 * (value - bestValue) > 75 * (beta - alpha);
                       depth -= 1 + extraReduction;
                   }
 
@@ -1339,6 +1337,7 @@ moves_loop: // When in check, search starts here
               }
               else
               {
+                  bestValue = value;
                   ss->cutoffCnt++;
                   assert(value >= beta); // Fail high
                   break;
