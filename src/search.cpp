@@ -1327,8 +1327,8 @@ moves_loop: // When in check, search starts here
                       && depth < 6
                       && beta  <  10534
                       && value > -10534) {
-                      bool extraReduction = alpha > -10534 && bestValue != -VALUE_INFINITE && (value - bestValue) > (beta - alpha);
-                      depth -= 1 + extraReduction;
+                      bool extraReduction = (value - bestValue) > (beta - alpha) / 2;
+                      depth -= extraReduction;
                   }
 
                   assert(depth > 0);
