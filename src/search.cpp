@@ -1143,7 +1143,7 @@ moves_loop: // When in check, search starts here
       pos.do_move(move, st, givesCheck);
 
       int selRule50 = pos.rule50_count() + (newDepth - r);
-      if (selRule50 <= 99 && selRule50 >= 90 && pos.rule50_count() % 3 == 0)
+      if (selRule50 > 99 && pos.rule50_count() % 5 == 0)
         r--;
 
       // Decrease reduction if position is or has been on the PV
