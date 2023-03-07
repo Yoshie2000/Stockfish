@@ -1142,6 +1142,10 @@ moves_loop: // When in check, search starts here
       // Step 16. Make the move
       pos.do_move(move, st, givesCheck);
 
+      int selRule50 = pos.rule50_count() + (newDepth - r);
+      if (selRule50 <= 99 && selRule50 >= 90 && pos.rule50_count() % 3 == 0)
+        r--;
+
       // Decrease reduction if position is or has been on the PV
       // and node is not likely to fail low. (~3 Elo)
       if (   ss->ttPv
