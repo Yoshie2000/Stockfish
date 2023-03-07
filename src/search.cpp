@@ -1192,7 +1192,7 @@ moves_loop: // When in check, search starts here
       r -= ss->statScore / (11791 + 3992 * (depth > 6 && depth < 19));
 
       int selRule50 = pos.rule50_count() + (newDepth - r);
-      if (selRule50 > 99 && pos.rule50_count() % 5 == 0)
+      if (selRule50 <= 99 && selRule50 >= 90 && pos.rule50_count() % 3 == 0)
         r--;
 
       // Step 17. Late moves reduction / extension (LMR, ~117 Elo)
