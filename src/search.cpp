@@ -1316,35 +1316,38 @@ moves_loop: // When in check, search starts here
 
       if (value > bestValue)
       {
-          bestValue = value;
 
           if (value > alpha)
           {
               bestMove = move;
-
               if (PvNode && !rootNode) // Update pv even in fail-high case
                   update_pv(ss->pv, move, (ss+1)->pv);
 
               if (PvNode && value < beta) // Update alpha! Always alpha < beta
               {
-                  alpha = value;
-
                   // Reduce other moves if we have found at least one score improvement
                   if (   depth > 1
                       && depth < 6
                       && beta  <  10534
-                      && alpha > -10534)
-                      depth -= 1;
+                      && value > -10534) {
+                      bool extraReduction = depth > 2 && alpha > -10534 && bestValue != -VALUE_INFINITE && 100 * (value - bestValue) > 75 * (beta - alpha);
+                      depth -= 1 + extraReduction;
+                  }
 
                   assert(depth > 0);
+
+                  alpha = value;
               }
               else
               {
+                  bestValue = value;
                   ss->cutoffCnt++;
                   assert(value >= beta); // Fail high
                   break;
               }
           }
+
+        bestValue = value;
       }
 
 
