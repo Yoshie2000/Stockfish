@@ -557,7 +557,7 @@ namespace {
     bool givesCheck, improving, priorCapture, singularQuietLMR;
     bool capture, moveCountPruning, ttCapture;
     Piece movedPiece;
-    int moveCount, captureCount, quietCount, improvement, complexity;
+    int moveCount, captureCount, quietCount, improvement, complexity, alphaUpdates;
 
     // Step 1. Initialize node
     Thread* thisThread = pos.this_thread();
@@ -567,6 +567,7 @@ namespace {
     moveCount          = captureCount = quietCount = ss->moveCount = 0;
     bestValue          = -VALUE_INFINITE;
     maxValue           = VALUE_INFINITE;
+    alphaUpdates       = 0;
 
     // Check for the available remaining time
     if (thisThread == Threads.main())
@@ -1186,6 +1187,14 @@ moves_loop: // When in check, search starts here
           && (*contHist[0])[movedPiece][to_sq(move)] >= 3722)
           r--;
 
+      // Reduce other moves if we have found at least one score improvement
+      if (   alphaUpdates > 0
+          && depth > 1
+          && depth < 6
+          && beta  <  10534
+          && alpha > -10534)
+        r += alphaUpdates;
+
       ss->statScore =  2 * thisThread->mainHistory[us][from_to(move)]
                      + (*contHist[0])[movedPiece][to_sq(move)]
                      + (*contHist[1])[movedPiece][to_sq(move)]
@@ -1328,14 +1337,7 @@ moves_loop: // When in check, search starts here
               if (PvNode && value < beta) // Update alpha! Always alpha < beta
               {
                   alpha = value;
-
-                  // Reduce other moves if we have found at least one score improvement
-                  if (   depth > 1
-                      && depth < 6
-                      && beta  <  10534
-                      && alpha > -10534)
-                      depth -= 1;
-
+                  alphaUpdates++;
                   assert(depth > 0);
               }
               else
