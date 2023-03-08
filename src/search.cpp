@@ -58,6 +58,10 @@ using namespace Search;
 
 namespace {
 
+  int lmrMaxReductions[10] = { 0, 0, 1, 2, 3, 4, 5, 6, 6, 6 };
+
+  TUNE(SetRange(0, 10), lmrMaxReductions);
+
   // Different node types, used as a template parameter
   enum NodeType { NonPV, PV, Root };
 
@@ -1205,6 +1209,9 @@ moves_loop: // When in check, search starts here
               || !capture
               || (cutNode && (ss-1)->moveCount > 1)))
       {
+          if (moveCount < 10)
+            r = std::min(r, lmrMaxReductions[moveCount]);
+
           // In general we want to cap the LMR depth search at newDepth, but when
           // reduction is negative, we allow this move a limited search extension
           // beyond the first move depth. This may lead to hidden double extensions.
