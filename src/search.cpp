@@ -949,13 +949,8 @@ moves_loop: // When in check, search starts here
 
     // Indicate PvNodes that will probably fail low if the node was searched
     // at a depth equal or greater than the current depth, and the result of this search was a fail low.
-    bool likelyFailLow =    PvNode
+    bool likelyToFail =     PvNode
                          && ttMove
-                         && (tte->bound() & BOUND_UPPER)
-                         && tte->depth() >= depth;
-    bool likelyFailHigh =   PvNode
-                         && ttMove
-                         && (tte->bound() & BOUND_LOWER)
                          && tte->depth() >= depth;
 
     // Step 13. Loop through all pseudo-legal moves until no moves remain
@@ -1151,14 +1146,10 @@ moves_loop: // When in check, search starts here
       pos.do_move(move, st, givesCheck);
 
       // Decrease reduction if position is or has been on the PV
-      // and node is not likely to fail low. (~3 Elo)
+      // and node is not likely to fail (~3 Elo)
       if (   ss->ttPv
-          && !likelyFailLow)
+          && !likelyToFail)
           r -= 2;
-      
-      if (   ss->ttPv
-          && likelyFailHigh)
-          r++;
 
       // Decrease reduction if opponent's move count is high (~1 Elo)
       if ((ss-1)->moveCount > 7)
