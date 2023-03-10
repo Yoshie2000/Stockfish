@@ -953,6 +953,10 @@ moves_loop: // When in check, search starts here
                          && ttMove
                          && (tte->bound() & BOUND_UPPER)
                          && tte->depth() >= depth;
+    bool likelyFailHigh =   PvNode
+                         && ttMove
+                         && (tte->bound() & BOUND_LOWER)
+                         && tte->depth() >= depth;
 
     // Step 13. Loop through all pseudo-legal moves until no moves remain
     // or a beta cutoff occurs.
@@ -1147,9 +1151,10 @@ moves_loop: // When in check, search starts here
       pos.do_move(move, st, givesCheck);
 
       // Decrease reduction if position is or has been on the PV
-      // and node is not likely to fail low. (~3 Elo)
+      // and node is not likely to fail (~3 Elo)
       if (   ss->ttPv
-          && !likelyFailLow)
+          && !likelyFailLow
+          && !likelyFailHigh)
           r -= 2;
 
       // Decrease reduction if opponent's move count is high (~1 Elo)
@@ -1194,9 +1199,6 @@ moves_loop: // When in check, search starts here
 
       // Decrease/increase reduction for moves with a good/bad history (~30 Elo)
       r -= ss->statScore / (11791 + 3992 * (depth > 6 && depth < 19));
-
-      if (PvNode)
-        r += moveCount / 13;
 
       // Step 17. Late moves reduction / extension (LMR, ~117 Elo)
       // We use various heuristics for the sons of a node after the first son has
