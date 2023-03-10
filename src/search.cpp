@@ -58,7 +58,7 @@ using namespace Search;
 
 namespace {
 
-  int lmrMaxReductions[10] = { 0, 0, 1, 2, 2, 3, 4, 6, 6, 6 };
+  int lmrMaxReductions[10] = { 0, 0, 1, 2, 2, 4, 5, 6, 6, 6 };
 
   // Different node types, used as a template parameter
   enum NodeType { NonPV, PV, Root };
