@@ -1215,7 +1215,7 @@ moves_loop: // When in check, search starts here
           // beyond the first move depth. This may lead to hidden double extensions.
           Depth d = std::clamp(newDepth - r, 1, newDepth + 1);
 
-          Value nullWindowThreshold = alpha - likelyFailHigh * 10;
+          Value nullWindowThreshold = alpha - likelyFailHigh * 5;
           value = -search<NonPV>(pos, ss+1, -(nullWindowThreshold+1), -nullWindowThreshold, d, true);
 
           // Do full depth search when reduced LMR search fails high
