@@ -954,6 +954,11 @@ moves_loop: // When in check, search starts here
                          && (tte->bound() & BOUND_UPPER)
                          && tte->depth() >= depth;
 
+    bool likelyFailHigh =    PvNode
+                          && ttMove
+                          && (tte->bound() & BOUND_LOWER)
+                          && tte->depth() >= depth;                        
+
     // Step 13. Loop through all pseudo-legal moves until no moves remain
     // or a beta cutoff occurs.
     while ((move = mp.next_move(moveCountPruning)) != MOVE_NONE)
@@ -1210,10 +1215,11 @@ moves_loop: // When in check, search starts here
           // beyond the first move depth. This may lead to hidden double extensions.
           Depth d = std::clamp(newDepth - r, 1, newDepth + 1);
 
-          value = -search<NonPV>(pos, ss+1, -(alpha+1), -alpha, d, true);
+          Value nullWindowThreshold = alpha - likelyFailHigh * 10;
+          value = -search<NonPV>(pos, ss+1, -(nullWindowThreshold+1), -nullWindowThreshold, d, true);
 
           // Do full depth search when reduced LMR search fails high
-          if (value > alpha && d < newDepth)
+          if (value > nullWindowThreshold && d < newDepth)
           {
               // Adjust full depth search based on LMR results - if result
               // was good enough search deeper, if it was bad enough search shallower
