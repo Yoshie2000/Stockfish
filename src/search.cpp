@@ -1242,7 +1242,7 @@ moves_loop: // When in check, search starts here
 
           value = -search<NonPV>(pos, ss+1, -(alpha+1), -alpha, newDepth - (r > 4), !cutNode);
 
-          if (r <= 4 && value > alpha + 3 * (beta - alpha) / 4 && (move == ss->killers[0] || move == ss->killers[1]))
+          if (r <= 4 && value > alpha + (beta - alpha) / 4 && (move == ss->killers[0] || move == ss->killers[1]))
             newDepth--;
       }
 
