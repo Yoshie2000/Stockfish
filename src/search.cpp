@@ -913,7 +913,7 @@ namespace {
         return qsearch<PV>(pos, ss, alpha, beta);
 
     if (    cutNode
-        &&  (depth >= 7 || eval < alpha - 299 - 161 * depth * depth)
+        && (depth >= 7 || eval < alpha - 369 - 206 * depth * depth)
         && !ttMove)
         depth -= 2;
     
