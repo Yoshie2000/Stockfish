@@ -1139,7 +1139,7 @@ moves_loop: // When in check, search starts here
       }
 
       // Add extension to new depth
-      newDepth += extension - initialExtension;
+      newDepth += extension - std::max(0, initialExtension / 2);
       if (moveCount == 1)
         initialExtension = extension;
       ss->doubleExtensions = (ss-1)->doubleExtensions + (extension == 2);
