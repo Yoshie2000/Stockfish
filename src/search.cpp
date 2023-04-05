@@ -1139,7 +1139,7 @@ moves_loop: // When in check, search starts here
       }
 
       // Add extension to new depth
-      newDepth += extension - initialExtension / 2;
+      newDepth += extension - initialExtension;
       if (moveCount == 1)
         initialExtension = extension;
       ss->doubleExtensions = (ss-1)->doubleExtensions + (extension == 2);
