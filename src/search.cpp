@@ -559,7 +559,7 @@ namespace {
     bool givesCheck, improving, priorCapture, singularQuietLMR;
     bool capture, moveCountPruning, ttCapture;
     Piece movedPiece;
-    int moveCount, captureCount, quietCount, improvement, complexity;
+    int moveCount, captureCount, quietCount, improvement, complexity, initialExtension;
 
     // Step 1. Initialize node
     Thread* thisThread = pos.this_thread();
@@ -609,6 +609,7 @@ namespace {
     ss->doubleExtensions = (ss-1)->doubleExtensions;
     Square prevSq        = is_ok((ss-1)->currentMove) ? to_sq((ss-1)->currentMove) : SQ_NONE;
     ss->statScore        = 0;
+    initialExtension     = 0;
 
     // Step 4. Transposition table lookup.
     excludedMove = ss->excludedMove;
@@ -1138,7 +1139,9 @@ moves_loop: // When in check, search starts here
       }
 
       // Add extension to new depth
-      newDepth += extension;
+      newDepth += extension - initialExtension / 2;
+      if (moveCount == 1)
+        initialExtension = extension;
       ss->doubleExtensions = (ss-1)->doubleExtensions + (extension == 2);
 
       // Speculative prefetch as early as possible
