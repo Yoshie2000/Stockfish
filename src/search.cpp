@@ -63,8 +63,8 @@ namespace {
   enum NodeType { NonPV, PV, Root };
 
   // Futility margin
-  Value futility_margin(Depth d, bool improving, bool worsening) {
-    return Value(154 * (d - improving) + 75 * worsening);
+  Value futility_margin(Depth d, bool improving) {
+    return Value(154 * (d - improving));
   }
 
   // Reductions lookup table, initialized at startup
@@ -75,8 +75,9 @@ namespace {
     return (r + 1449 - int(delta) * 937 / int(rootDelta)) / 1024 + (!i && r > 941);
   }
 
-  constexpr int futility_move_count(bool improving, Depth depth) {
+  constexpr int futility_move_count(bool improving, bool worsening, Depth depth) {
     return improving ? (3 + depth * depth) :
+           worsening ? (3 + depth * depth) / 4 : 
                        (3 + depth * depth) / 2;
   }
 
@@ -771,7 +772,7 @@ namespace {
     // The depth condition is important for mate finding.
     if (   !ss->ttPv
         &&  depth < 9
-        &&  eval - futility_margin(depth, improving, worsening) - (ss-1)->statScore / 280 >= beta
+        &&  eval - futility_margin(depth, improving) - (ss-1)->statScore / 280 >= beta
         &&  eval >= beta
         &&  eval < 25128) // larger than VALUE_KNOWN_WIN, but smaller than TB wins
         return eval;
@@ -978,7 +979,7 @@ moves_loop: // When in check, search starts here
           && bestValue > VALUE_TB_LOSS_IN_MAX_PLY)
       {
           // Skip quiet moves if movecount exceeds our FutilityMoveCount threshold (~8 Elo)
-          moveCountPruning = moveCount >= futility_move_count(improving, depth);
+          moveCountPruning = moveCount >= futility_move_count(improving, worsening, depth);
 
           // Reduced depth of the next LMR search
           int lmrDepth = std::max(newDepth - r, 0);
