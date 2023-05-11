@@ -75,9 +75,8 @@ namespace {
     return (r + 1449 - int(delta) * 937 / int(rootDelta)) / 1024 + (!i && r > 941);
   }
 
-  constexpr int futility_move_count(bool improving, bool worsening, Depth depth) {
+  constexpr int futility_move_count(bool improving, Depth depth) {
     return improving ? (3 + depth * depth) :
-           worsening ? (3 + depth * depth) / 4 : 
                        (3 + depth * depth) / 2;
   }
 
@@ -756,7 +755,7 @@ namespace {
                   : (ss-4)->staticEval != VALUE_NONE ? ss->staticEval - (ss-4)->staticEval
                   :                                    156;
     improving = improvement > 0;
-    worsening = improvement < -128;
+    worsening = improvement < -256;
 
     // Step 7. Razoring (~1 Elo).
     // If eval is really low check with qsearch if it can exceed alpha, if it can't,
@@ -979,7 +978,7 @@ moves_loop: // When in check, search starts here
           && bestValue > VALUE_TB_LOSS_IN_MAX_PLY)
       {
           // Skip quiet moves if movecount exceeds our FutilityMoveCount threshold (~8 Elo)
-          moveCountPruning = moveCount >= futility_move_count(improving, worsening, depth);
+          moveCountPruning = moveCount >= futility_move_count(improving, depth);
 
           // Reduced depth of the next LMR search
           int lmrDepth = std::max(newDepth - r, 0);
