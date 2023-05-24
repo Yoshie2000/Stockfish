@@ -824,7 +824,7 @@ namespace {
     }
 
     probCutBeta = beta + 174 - 60 * improving;
-    deeperProbcut = ss->ttPv && tte->depth() >= depth + 1;
+    deeperProbcut = ss->ttPv && tte->depth() >= depth;
 
     // Step 10. ProbCut (~10 Elo)
     // If we have a good enough capture (or queen promotion) and a reduced search returns a value
@@ -837,7 +837,7 @@ namespace {
         // because probCut search has depth set to depth - 4 but we also do a move before it
         // so effective depth is equal to depth - 3
         && !(   ss->ttHit
-             && tte->depth() >= depth - 3 + deeperProbcut
+             && tte->depth() >= depth - 3
              && ttValue != VALUE_NONE
              && ttValue < probCutBeta))
     {
