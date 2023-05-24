@@ -824,7 +824,7 @@ namespace {
     }
 
     probCutBeta = beta + 174 - 60 * improving;
-    deeperProbcut = ss->ttPv && tte->depth() >= depth;
+    deeperProbcut = ss->ttPv && tte->depth() >= depth + 2;
 
     // Step 10. ProbCut (~10 Elo)
     // If we have a good enough capture (or queen promotion) and a reduced search returns a value
