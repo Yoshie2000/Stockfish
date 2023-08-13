@@ -701,6 +701,7 @@ namespace {
     }
 
     CapturePieceToHistory& captureHistory = thisThread->captureHistory;
+    Value pruningHistoryValue = prevSq != SQ_NONE ? thisThread->pruningHistory[pos.piece_on(prevSq)][prevSq] : VALUE_NONE;
 
     // Step 6. Static evaluation of the position
     if (ss->inCheck)
@@ -729,6 +730,9 @@ namespace {
         if (    ttValue != VALUE_NONE
             && (tte->bound() & (ttValue > eval ? BOUND_LOWER : BOUND_UPPER)))
             eval = ttValue;
+    }
+    else if (pruningHistoryValue != VALUE_NONE) {
+        ss->staticEval = eval = pruningHistoryValue;
     }
     else
     {
@@ -759,8 +763,11 @@ namespace {
     if (eval < alpha - 456 - 252 * depth * depth)
     {
         value = qsearch<NonPV>(pos, ss, alpha - 1, alpha);
-        if (value < alpha)
+        if (value < alpha) {
+            if (prevSq != SQ_NONE)
+                thisThread->pruningHistory[pos.piece_on(prevSq)][prevSq] = ss->staticEval;
             return value;
+        }
     }
 
     // Step 8. Futility pruning: child node (~40 Elo).
@@ -769,8 +776,11 @@ namespace {
         &&  depth < 9
         &&  eval - futility_margin(depth, cutNode && !ss->ttHit, improving) - (ss-1)->statScore / 306 >= beta
         &&  eval >= beta
-        &&  eval < 24923) // larger than VALUE_KNOWN_WIN, but smaller than TB wins
+        &&  eval < 24923) { // larger than VALUE_KNOWN_WIN, but smaller than TB wins
+        if (prevSq != SQ_NONE)
+            thisThread->pruningHistory[pos.piece_on(prevSq)][prevSq] = ss->staticEval;
         return eval;
+    }
 
     // Step 9. Null move search with verification search (~35 Elo)
     if (   !PvNode
