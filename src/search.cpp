@@ -767,8 +767,6 @@ namespace {
     {
         value = qsearch<NonPV>(pos, ss, alpha - 1, alpha);
         if (value < alpha) {
-            if (prevSq != SQ_NONE && prevPrevSq != SQ_NONE)
-                thisThread->pruningHistory[pos.piece_on(prevSq)][prevSq][prevPrevSq] = ss->staticEval;
             return value;
         }
     }
@@ -780,6 +778,8 @@ namespace {
         &&  eval - futility_margin(depth, cutNode && !ss->ttHit, improving) - (ss-1)->statScore / 306 >= beta
         &&  eval >= beta
         &&  eval < 24923) { // larger than VALUE_KNOWN_WIN, but smaller than TB wins
+        if (prevSq != SQ_NONE && prevPrevSq != SQ_NONE)
+            thisThread->pruningHistory[pos.piece_on(prevSq)][prevSq][prevPrevSq] = ss->staticEval;
         return eval;
     }
 
