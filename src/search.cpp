@@ -765,7 +765,7 @@ namespace {
         value = qsearch<NonPV>(pos, ss, alpha - 1, alpha);
         if (value < alpha) {
             if (prevSq != SQ_NONE)
-                thisThread->pruningHistory[pos.piece_on(prevSq)][prevSq] = ss->staticEval;
+                thisThread->pruningHistory[pos.piece_on(prevSq)][prevSq] = eval;
             return value;
         }
     }
@@ -778,7 +778,7 @@ namespace {
         &&  eval >= beta
         &&  eval < 24923) { // larger than VALUE_KNOWN_WIN, but smaller than TB wins
         if (prevSq != SQ_NONE)
-            thisThread->pruningHistory[pos.piece_on(prevSq)][prevSq] = ss->staticEval;
+            thisThread->pruningHistory[pos.piece_on(prevSq)][prevSq] = eval;
         return eval;
     }
 
