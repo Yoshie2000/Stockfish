@@ -702,7 +702,9 @@ namespace {
     }
 
     CapturePieceToHistory& captureHistory = thisThread->captureHistory;
-    Value pruningHistoryValue = prevSq != SQ_NONE ? thisThread->pruningHistory[pos.piece_on(prevSq)][prevSq] : VALUE_NONE;
+
+    Square prevPrevSq = is_ok((ss-2)->currentMove) ? to_sq((ss-2)->currentMove) : SQ_NONE;
+    Value pruningHistoryValue = prevSq != SQ_NONE && prevPrevSq != SQ_NONE ? thisThread->pruningHistory[pos.piece_on(prevSq)][prevSq][prevPrevSq] : VALUE_NONE;
 
     // Step 6. Static evaluation of the position
     if (ss->inCheck)

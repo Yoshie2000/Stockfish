@@ -89,8 +89,8 @@ enum StatsType { NoCaptures, Captures };
 /// (~11 elo)
 using ButterflyHistory = Stats<int16_t, 7183, COLOR_NB, int(SQUARE_NB) * int(SQUARE_NB)>;
 
-/// Stores evaluation of moves (indexed by [piece][to]) that have been pruned by early pruning
-using PruningHistory = Stats<Value, NOT_USED, PIECE_NB, SQUARE_NB>;
+/// Stores evaluation of moves (indexed by [piece][to][prevTo]) that have been pruned by early pruning
+using PruningHistory = Stats<Value, NOT_USED, PIECE_NB, SQUARE_NB, SQUARE_NB>;
 
 /// CounterMoveHistory stores counter moves indexed by [piece][to] of the previous
 /// move, see www.chessprogramming.org/Countermove_Heuristic
