@@ -734,7 +734,7 @@ namespace {
             && (tte->bound() & (ttValue > eval ? BOUND_LOWER : BOUND_UPPER)))
             eval = ttValue;
     }
-    else if (depth < 4 && pruningHistoryValue != VALUE_NONE) {
+    else if (depth < 2 && pruningHistoryValue != VALUE_NONE) {
         ss->staticEval = eval = pruningHistoryValue;
     }
     else
