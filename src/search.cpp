@@ -365,6 +365,7 @@ void Thread::search() {
           {
               // Adjust the effective depth searched, but ensure at least one effective increment for every
               // four searchAgain steps (see issue #2717).
+              pruningHistory.fill(VALUE_NONE);
               Depth adjustedDepth = std::max(1, rootDepth - failedHighCnt - 3 * (searchAgainCounter + 1) / 4);
               bestValue = Stockfish::search<Root>(rootPos, ss, alpha, beta, adjustedDepth, false);
 
@@ -731,7 +732,7 @@ namespace {
             && (tte->bound() & (ttValue > eval ? BOUND_LOWER : BOUND_UPPER)))
             eval = ttValue;
     }
-    else if (pruningHistoryValue != VALUE_NONE) {
+    else if (depth < 6 && pruningHistoryValue != VALUE_NONE) {
         ss->staticEval = eval = pruningHistoryValue;
     }
     else
@@ -765,7 +766,7 @@ namespace {
         value = qsearch<NonPV>(pos, ss, alpha - 1, alpha);
         if (value < alpha) {
             if (prevSq != SQ_NONE)
-                thisThread->pruningHistory[pos.piece_on(prevSq)][prevSq] = eval;
+                thisThread->pruningHistory[pos.piece_on(prevSq)][prevSq] = ss->staticEval;
             return value;
         }
     }
@@ -778,7 +779,7 @@ namespace {
         &&  eval >= beta
         &&  eval < 24923) { // larger than VALUE_KNOWN_WIN, but smaller than TB wins
         if (prevSq != SQ_NONE)
-            thisThread->pruningHistory[pos.piece_on(prevSq)][prevSq] = eval;
+            thisThread->pruningHistory[pos.piece_on(prevSq)][prevSq] = ss->staticEval;
         return eval;
     }
 
