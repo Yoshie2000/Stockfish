@@ -146,6 +146,24 @@ Value Eval::simple_eval(const Position& pos, Color c) {
            +           (pos.non_pawn_material(c) - pos.non_pawn_material(~c));
 }
 
+/// use_simple_eval() calculates for a given position whether simple_eval should be used to
+/// evaluate this position. The value of simple_eval will be set to the pointer simpleEvalOut
+/// (if provided)
+
+bool Eval::use_simple_eval(const Position& pos, int* simpleEvalOut) {
+
+  Color stm      = pos.side_to_move();
+  int shuffling  = pos.rule50_count();
+  int simpleEval = simple_eval(pos, stm) + (int(pos.key() & 7) - 3);
+
+  if (simpleEvalOut)
+    *simpleEvalOut = simpleEval;
+
+  return abs(simpleEval) >=   RookValue + KnightValue
+                            + 16 * shuffling * shuffling
+                            + abs(pos.this_thread()->bestValue)
+                            + abs(pos.this_thread()->rootSimpleEval);
+}
 
 /// evaluate() is the evaluator for the outer world. It returns a static evaluation
 /// of the position from the point of view of the side to move.
@@ -155,14 +173,9 @@ Value Eval::evaluate(const Position& pos) {
   assert(!pos.checkers());
 
   Value v;
-  Color stm      = pos.side_to_move();
-  int shuffling  = pos.rule50_count();
-  int simpleEval = simple_eval(pos, stm) + (int(pos.key() & 7) - 3);
+  int simpleEval;
 
-  bool lazy = abs(simpleEval) >=   RookValue + KnightValue
-                                 + 16 * shuffling * shuffling
-                                 + abs(pos.this_thread()->bestValue)
-                                 + abs(pos.this_thread()->rootSimpleEval);
+  bool lazy = use_simple_eval(pos, &simpleEval);
 
   if (lazy)
       v = Value(simpleEval);
@@ -171,7 +184,7 @@ Value Eval::evaluate(const Position& pos) {
       int nnueComplexity;
       Value nnue = NNUE::evaluate(pos, true, &nnueComplexity);
 
-      Value optimism = pos.this_thread()->optimism[stm];
+      Value optimism = pos.this_thread()->optimism[pos.side_to_move()];
 
       // Blend optimism and eval with nnue complexity and material imbalance
       optimism += optimism * (nnueComplexity + abs(simpleEval - nnue)) / 512;
@@ -183,7 +196,7 @@ Value Eval::evaluate(const Position& pos) {
   }
 
   // Damp down the evaluation linearly when shuffling
-  v = v * (200 - shuffling) / 214;
+  v = v * (200 - pos.rule50_count()) / 214;
 
   // Guarantee evaluation does not hit the tablebase range
   v = std::clamp(v, VALUE_TB_LOSS_IN_MAX_PLY + 1, VALUE_TB_WIN_IN_MAX_PLY - 1);

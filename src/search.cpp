@@ -722,7 +722,8 @@ namespace {
     else if (excludedMove)
     {
         // Providing the hint that this node's accumulator will be used often brings significant Elo gain (13 Elo)
-        Eval::NNUE::hint_common_parent_position(pos);
+        if (!Eval::use_simple_eval(pos))
+            Eval::NNUE::hint_common_parent_position(pos);
         eval = ss->staticEval;
     }
     else if (ss->ttHit)
@@ -731,7 +732,7 @@ namespace {
         ss->staticEval = eval = tte->eval();
         if (eval == VALUE_NONE)
             ss->staticEval = eval = evaluate(pos);
-        else if (PvNode)
+        else if (PvNode && !Eval::use_simple_eval(pos))
             Eval::NNUE::hint_common_parent_position(pos);
 
         // ttValue can be used as a better position evaluation (~7 Elo)
@@ -895,7 +896,8 @@ namespace {
                 }
             }
 
-        Eval::NNUE::hint_common_parent_position(pos);
+        if (!Eval::use_simple_eval(pos))
+            Eval::NNUE::hint_common_parent_position(pos);
     }
 
 moves_loop: // When in check, search starts here
