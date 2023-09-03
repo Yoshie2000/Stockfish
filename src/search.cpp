@@ -896,8 +896,7 @@ namespace {
                 }
             }
 
-        if (!Eval::use_simple_eval(pos))
-            Eval::NNUE::hint_common_parent_position(pos);
+        Eval::NNUE::hint_common_parent_position(pos);
     }
 
 moves_loop: // When in check, search starts here
