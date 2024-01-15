@@ -63,8 +63,8 @@ namespace {
 
 
 // Futility margin
-Value futility_margin(Depth d, bool noTtCutNode, bool improving) {
-    return ((116 - 44 * noTtCutNode) * (d - improving));
+Value futility_margin(Depth d, bool noTtCutNode, bool improving, bool rootImproving) {
+    return ((116 - 44 * noTtCutNode - 44 * rootImproving) * (d - improving));
 }
 
 constexpr int futility_move_count(bool improving, Depth depth) {
@@ -281,6 +281,8 @@ void Search::Worker::iterative_deepening() {
     ss->pv = pv;
 
     Value bestValue = -VALUE_INFINITE;
+    Value prevBestValue = -VALUE_INFINITE;
+    rootImproving = false;
 
     if (mainThread)
     {
@@ -405,6 +407,8 @@ void Search::Worker::iterative_deepening() {
 
                 assert(alpha >= -VALUE_INFINITE && beta <= VALUE_INFINITE);
             }
+            rootImproving = bestValue > prevBestValue;
+            prevBestValue = bestValue;
 
             // Sort the PV lines searched so far and update the GUI
             std::stable_sort(rootMoves.begin() + pvFirst, rootMoves.begin() + pvIdx + 1);
@@ -801,7 +805,7 @@ Value Search::Worker::search(
     // Step 8. Futility pruning: child node (~40 Elo)
     // The depth condition is important for mate finding.
     if (!ss->ttPv && depth < 9
-        && eval - futility_margin(depth, cutNode && !ss->ttHit, improving)
+        && eval - futility_margin(depth, cutNode && !ss->ttHit, improving, thisThread->rootImproving)
                - (ss - 1)->statScore / 337
              >= beta
         && eval >= beta && eval < 29008  // smaller than TB wins
