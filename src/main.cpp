@@ -29,27 +29,48 @@
 #include "thread.h"
 #include "tt.h"
 #include "uci.h"
+#include "tools/convert.h"
+#include <vector>
+#include <string>
+#include <iostream>
+#include <filesystem>
+namespace fs = std::filesystem;
 
 using namespace Stockfish;
 
-int main(int argc, char* argv[]) {
+int main()
+{
 
-  std::cout << engine_info() << std::endl;
+  std::string directory = "/mnt/c/Programmieren (No Sync)/bullet/data/archive/";
+  int i = 0;
+  for (const auto &entry : fs::directory_iterator(directory))
+  {
+    std::string outputFile = "output-" + std::to_string(i / 20) + ".plain";
+    std::vector<std::string> args{entry.path(), "/mnt/c/Programmieren (No Sync)/bullet/data/" + outputFile, "append", "validate"};
 
-  CommandLine::init(argc, argv);
-  UCI::init(Options);
-  Tune::init();
-  PSQT::init();
-  Bitboards::init();
-  Position::init();
-  Bitbases::init();
-  Endgames::init();
-  Threads.set(size_t(Options["Threads"]));
-  Search::clear(); // After threads are up
-  Eval::NNUE::init();
+    if (i >= 0)
+      Stockfish::Tools::convert(args);
 
-  UCI::loop(argc, argv);
+    std::cout << "Finished file " << i << std::endl;
+    i++;
+  }
 
-  Threads.set(0);
-  return 0;
+  // std::cout << engine_info() << std::endl;
+
+  // CommandLine::init(argc, argv);
+  // UCI::init(Options);
+  // Tune::init();
+  // PSQT::init();
+  // Bitboards::init();
+  // Position::init();
+  // Bitbases::init();
+  // Endgames::init();
+  // Threads.set(size_t(Options["Threads"]));
+  // Search::clear(); // After threads are up
+  // Eval::NNUE::init();
+
+  // UCI::loop(argc, argv);
+
+  // Threads.set(0);
+  // return 0;
 }

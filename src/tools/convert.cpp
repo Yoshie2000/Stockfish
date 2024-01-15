@@ -567,7 +567,7 @@ namespace Stockfish::Tools
         }
     }
 
-    static void convert(const std::vector<std::string>& args)
+    void convert(const std::vector<std::string>& args)
     {
         if (args.size() < 2 || args.size() > 4)
         {
@@ -583,6 +583,8 @@ namespace Stockfish::Tools
             append
             ? std::ios_base::app
             : std::ios_base::trunc;
+        
+        std::cout << args[0] << " " << args[1] << " " << append << " " << validate << std::endl;
 
         convert(args[0], args[1], openmode, validate);
     }

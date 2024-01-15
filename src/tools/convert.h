@@ -7,6 +7,7 @@
 
 namespace Stockfish::Tools {
     void convert(std::istringstream& is);
+    void convert(const std::vector<std::string>& args);
 
     void convert_bin_from_pgn_extract(std::istringstream& is);
 

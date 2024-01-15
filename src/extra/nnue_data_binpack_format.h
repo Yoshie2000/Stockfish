@@ -35,6 +35,9 @@
 #include <climits>
 #include <optional>
 
+#include "../position.h"
+#include "../types.h"
+
 #if (defined(_MSC_VER) || defined(__INTEL_COMPILER)) && !defined(__clang__)
 #include <intrin.h>
 #endif
@@ -1131,6 +1134,7 @@ namespace chess
         static constexpr std::uint8_t rankShift = 3;
 
     public:
+        std::int8_t m_id;
         [[nodiscard]] static constexpr Square none()
         {
             return Square(m_noneId);
@@ -1280,9 +1284,6 @@ namespace chess
         {
             return m_id >= 0 && m_id < m_noneId;
         }
-
-    private:
-        std::int8_t m_id;
     };
 
     constexpr Square a1(fileA, rank1);
@@ -7519,27 +7520,26 @@ namespace binpack
         }
     };
 
-    inline void emitPlainEntry(std::string& buffer, const TrainingDataEntry& plain)
+    inline void emitPlainEntry(std::string &buffer, const TrainingDataEntry &plain)
     {
-        buffer += "fen ";
         buffer += plain.pos.fen();
-        buffer += '\n';
+        buffer += " | ";
 
-        buffer += "move ";
-        buffer += chess::uci::moveToUci(plain.pos, plain.move);
-        buffer += '\n';
+        auto s = plain.score;
+        auto r = plain.result;
 
-        buffer += "score ";
-        buffer += std::to_string(plain.score);
-        buffer += '\n';
+        if (plain.pos.sideToMove() == chess::Color::Black)
+        {
+            s = -s;
+            r = -r;
+        }
 
-        buffer += "ply ";
-        buffer += std::to_string(plain.ply);
-        buffer += '\n';
+        buffer += std::to_string(s);
+        buffer += " | ";
 
-        buffer += "result ";
-        buffer += std::to_string(plain.result);
-        buffer += "\ne\n";
+        buffer += r == 1 ? "1.0" : r == -1 ? "0.0"
+                                        : "0.5";
+        buffer += "\n";
     }
 
     inline void emitBinEntry(std::vector<char>& buffer, const TrainingDataEntry& plain)
@@ -7618,6 +7618,8 @@ namespace binpack
         std::ofstream outputFile(outputPath, om);
         const auto base = outputFile.tellp();
         std::size_t numProcessedPositions = 0;
+        std::size_t numSkippedPositions = 0;
+        std::size_t bufferRefills = 0;
         std::string buffer;
         buffer.reserve(bufferSize * 2);
 
@@ -7630,17 +7632,22 @@ namespace binpack
                 return;
             }
 
-            emitPlainEntry(buffer, e);
-
-            ++numProcessedPositions;
+            if (e.score >= 10000 || e.pos.isCheck() || e.move.type == chess::MoveType::EnPassant || e.pos.isPieceAttacked(e.move.to) || e.pos.pieceAt(e.move.to).type() != chess::PieceType::None) {
+                ++numSkippedPositions;
+            }
+            else {
+                emitPlainEntry(buffer, e);
+                ++numProcessedPositions;
+            }
 
             if (buffer.size() > bufferSize)
             {
                 outputFile << buffer;
                 buffer.clear();
-
                 const auto cur = outputFile.tellp();
-                std::cout << "Processed " << (cur - base) << " bytes and " << numProcessedPositions << " positions.\n";
+                bufferRefills++;
+                if (bufferRefills % 100 == 0)
+                    std::cout << "Processed " << (cur - base) << " bytes, wrote " << numProcessedPositions << " positions, skipped " << numSkippedPositions << " positions.\n";
             }
         }
 
@@ -7652,7 +7659,7 @@ namespace binpack
             std::cout << "Processed " << (cur - base) << " bytes and " << numProcessedPositions << " positions.\n";
         }
 
-        std::cout << "Finished. Converted " << numProcessedPositions << " positions.\n";
+        std::cout << "Finished. Wrote " << numProcessedPositions << " , skipped " << numSkippedPositions << " positions.\n";
     }
 
 
