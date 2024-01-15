@@ -63,8 +63,8 @@ namespace {
 
 
 // Futility margin
-Value futility_margin(Depth d, bool noTtCutNode, bool improving, bool rootImproving) {
-    return ((116 - 44 * noTtCutNode) * (d - improving - rootImproving));
+Value futility_margin(Depth d, bool noTtCutNode, bool improving) {
+    return ((116 - 44 * noTtCutNode) * (d - improving));
 }
 
 constexpr int futility_move_count(bool improving, Depth depth) {
@@ -805,7 +805,7 @@ Value Search::Worker::search(
     // Step 8. Futility pruning: child node (~40 Elo)
     // The depth condition is important for mate finding.
     if (!ss->ttPv && depth < 9
-        && eval - futility_margin(depth, cutNode && !ss->ttHit, improving, thisThread->rootImproving)
+        && eval - futility_margin(depth, cutNode && !ss->ttHit, improving)
                - (ss - 1)->statScore / 337
              >= beta
         && eval >= beta && eval < 29008  // smaller than TB wins
@@ -1078,7 +1078,7 @@ moves_loop:  // When in check, search starts here
                 && std::abs(ttValue) < VALUE_TB_WIN_IN_MAX_PLY && (tte->bound() & BOUND_LOWER)
                 && tte->depth() >= depth - 3)
             {
-                Value singularBeta  = ttValue - (66 + 58 * (ss->ttPv && !PvNode)) * depth / 64;
+                Value singularBeta  = ttValue - (66 + 58 * (ss->ttPv && !PvNode) + 24 * thisThread->rootImproving) * depth / 64;
                 Depth singularDepth = newDepth / 2;
 
                 ss->excludedMove = move;
