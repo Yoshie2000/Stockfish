@@ -281,6 +281,9 @@ void Search::Worker::iterative_deepening() {
     ss->pv = pv;
 
     Value bestValue = -VALUE_INFINITE;
+    Value previousValue = -VALUE_INFINITE;
+    rootImproving = false;
+    rootColor = us;
 
     if (mainThread)
     {
@@ -405,6 +408,8 @@ void Search::Worker::iterative_deepening() {
 
                 assert(alpha >= -VALUE_INFINITE && beta <= VALUE_INFINITE);
             }
+            rootImproving = bestValue > previousValue;
+            previousValue = bestValue;
 
             // Sort the PV lines searched so far and update the GUI
             std::stable_sort(rootMoves.begin() + pvFirst, rootMoves.begin() + pvIdx + 1);
@@ -1074,7 +1079,8 @@ moves_loop:  // When in check, search starts here
                 && std::abs(ttValue) < VALUE_TB_WIN_IN_MAX_PLY && (tte->bound() & BOUND_LOWER)
                 && tte->depth() >= depth - 3)
             {
-                Value singularBeta  = ttValue - (66 + 58 * (ss->ttPv && !PvNode)) * depth / 64;
+                Value singularBetaBase = thisThread->rootColor != pos.side_to_move() ? 66 : (56 + 19 * thisThread->rootImproving);
+                Value singularBeta = ttValue - (singularBetaBase + 58 * (ss->ttPv && !PvNode)) * depth / 64;
                 Depth singularDepth = newDepth / 2;
 
                 ss->excludedMove = move;
