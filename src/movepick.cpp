@@ -99,6 +99,7 @@ MovePicker::MovePicker(const Position&              p,
     continuationHistory(ch),
     pawnHistory(ph),
     ttMove(ttm),
+    killersPtr(killers),
     refutations{{killers[0], 0}, {killers[1], 0}, {cm, 0}},
     depth(d) {
     assert(d > 0);
@@ -274,6 +275,8 @@ top:
             return *(cur - 1);
 
         // Prepare the pointers to loop over the refutations array
+        refutations[0] = killersPtr[0];
+        refutations[1] = killersPtr[1];
         cur      = std::begin(refutations);
         endMoves = std::end(refutations);
 
