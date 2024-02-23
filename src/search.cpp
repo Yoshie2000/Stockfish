@@ -512,7 +512,8 @@ Value Search::Worker::search(
 
     // Check if we have an upcoming move that draws by repetition, or
     // if the opponent had an alternative move earlier to this position.
-    if (!rootNode && alpha < VALUE_DRAW && pos.has_game_cycle(ss->ply))
+    bool gameCycle = pos.has_game_cycle(ss->ply);
+    if (!rootNode && alpha < VALUE_DRAW && gameCycle)
     {
         alpha = value_draw(this->nodes);
         if (alpha >= beta)
@@ -1113,6 +1114,10 @@ moves_loop:  // When in check, search starts here
         // Decrease reduction for PvNodes (~3 Elo)
         if (PvNode)
             r--;
+        
+        // Increase reduction if we have a move that leads to a repetition
+        if (gameCycle)
+            r++;
 
         // Increase reduction on repetition (~1 Elo)
         if (move == (ss - 4)->currentMove && pos.has_repeated())
