@@ -195,7 +195,7 @@ int Eval::simple_eval(const Position& pos, Color c) {
 
 // Evaluate is the evaluator for the outer world. It returns a static evaluation
 // of the position from the point of view of the side to move.
-Value Eval::evaluate(const Position& pos, int optimism) {
+Value Eval::evaluate(const Position& pos, int optimism, int gameCycleCnt) {
 
     assert(!pos.checkers());
 
@@ -217,6 +217,9 @@ Value Eval::evaluate(const Position& pos, int optimism) {
     // Damp down the evaluation linearly when shuffling
     int shuffling = pos.rule50_count();
     v             = v * (200 - shuffling) / 214;
+
+    // Damp down the evaluation linearly if the position is nearly repeating a lot
+    v = v * (30 - std::clamp(gameCycleCnt - 1, 0, 25)) / 35;
 
     // Guarantee evaluation does not hit the tablebase range
     v = std::clamp(v, VALUE_TB_LOSS_IN_MAX_PLY + 1, VALUE_TB_WIN_IN_MAX_PLY - 1);
@@ -244,7 +247,7 @@ std::string Eval::trace(Position& pos) {
     v = pos.side_to_move() == WHITE ? v : -v;
     ss << "NNUE evaluation        " << 0.01 * UCI::to_cp(v) << " (white side)\n";
 
-    v = evaluate(pos, VALUE_ZERO);
+    v = evaluate(pos, VALUE_ZERO, 0);
     v = pos.side_to_move() == WHITE ? v : -v;
     ss << "Final evaluation       " << 0.01 * UCI::to_cp(v) << " (white side)";
     ss << " [with scaled NNUE, ...]";

@@ -512,6 +512,7 @@ Value Search::Worker::search(
 
     // Check if we have an upcoming move that draws by repetition, or
     // if the opponent had an alternative move earlier to this position.
+    ss->gameCycleCnt = (ss-1)->gameCycleCnt + pos.has_game_cycle(ss->ply);
     if (!rootNode && alpha < VALUE_DRAW && pos.has_game_cycle(ss->ply))
     {
         alpha = value_draw(this->nodes);
@@ -560,7 +561,7 @@ Value Search::Worker::search(
         // Step 2. Check for aborted search and immediate draw
         if (threads.stop.load(std::memory_order_relaxed) || pos.is_draw(ss->ply)
             || ss->ply >= MAX_PLY)
-            return (ss->ply >= MAX_PLY && !ss->inCheck) ? evaluate(pos, thisThread->optimism[us])
+            return (ss->ply >= MAX_PLY && !ss->inCheck) ? evaluate(pos, thisThread->optimism[us], ss->gameCycleCnt)
                                                         : value_draw(thisThread->nodes);
 
         // Step 3. Mate distance pruning. Even if we mate at the next move our score
@@ -705,7 +706,7 @@ Value Search::Worker::search(
         // Never assume anything about values stored in TT
         unadjustedStaticEval = tte->eval();
         if (unadjustedStaticEval == VALUE_NONE)
-            unadjustedStaticEval = evaluate(pos, thisThread->optimism[us]);
+            unadjustedStaticEval = evaluate(pos, thisThread->optimism[us], ss->gameCycleCnt);
         else if (PvNode)
             Eval::NNUE::hint_common_parent_position(pos);
 
@@ -717,7 +718,7 @@ Value Search::Worker::search(
     }
     else
     {
-        unadjustedStaticEval = evaluate(pos, thisThread->optimism[us]);
+        unadjustedStaticEval = evaluate(pos, thisThread->optimism[us], ss->gameCycleCnt);
         ss->staticEval = eval = to_corrected_static_eval(unadjustedStaticEval, *thisThread, pos);
 
         // Static evaluation is saved as it was before adjustment by correction history
@@ -1370,6 +1371,7 @@ Value Search::Worker::qsearch(Position& pos, Stack* ss, Value alpha, Value beta,
 
     // Check if we have an upcoming move that draws by repetition, or if
     // the opponent had an alternative move earlier to this position. (~1 Elo)
+    ss->gameCycleCnt = (ss-1)->gameCycleCnt + pos.has_game_cycle(ss->ply);
     if (alpha < VALUE_DRAW && pos.has_game_cycle(ss->ply))
     {
         alpha = value_draw(this->nodes);
@@ -1408,7 +1410,7 @@ Value Search::Worker::qsearch(Position& pos, Stack* ss, Value alpha, Value beta,
 
     // Step 2. Check for an immediate draw or maximum ply reached
     if (pos.is_draw(ss->ply) || ss->ply >= MAX_PLY)
-        return (ss->ply >= MAX_PLY && !ss->inCheck) ? evaluate(pos, thisThread->optimism[us])
+        return (ss->ply >= MAX_PLY && !ss->inCheck) ? evaluate(pos, thisThread->optimism[us], ss->gameCycleCnt)
                                                     : VALUE_DRAW;
 
     assert(0 <= ss->ply && ss->ply < MAX_PLY);
@@ -1440,7 +1442,7 @@ Value Search::Worker::qsearch(Position& pos, Stack* ss, Value alpha, Value beta,
             // Never assume anything about values stored in TT
             unadjustedStaticEval = tte->eval();
             if (unadjustedStaticEval == VALUE_NONE)
-                unadjustedStaticEval = evaluate(pos, thisThread->optimism[us]);
+                unadjustedStaticEval = evaluate(pos, thisThread->optimism[us], ss->gameCycleCnt);
             ss->staticEval = bestValue =
               to_corrected_static_eval(unadjustedStaticEval, *thisThread, pos);
 
@@ -1453,7 +1455,7 @@ Value Search::Worker::qsearch(Position& pos, Stack* ss, Value alpha, Value beta,
         {
             // In case of null move search, use previous static eval with a different sign
             unadjustedStaticEval = (ss - 1)->currentMove != Move::null()
-                                   ? evaluate(pos, thisThread->optimism[us])
+                                   ? evaluate(pos, thisThread->optimism[us], ss->gameCycleCnt)
                                    : -(ss - 1)->staticEval;
             ss->staticEval       = bestValue =
               to_corrected_static_eval(unadjustedStaticEval, *thisThread, pos);
