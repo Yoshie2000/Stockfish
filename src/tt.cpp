@@ -33,7 +33,7 @@ namespace Stockfish {
 // Populates the TTEntry with a new node's data, possibly
 // overwriting an old position. The update is not atomic and can be racy.
 void TTEntry::save(
-  Key k, Value v, bool pv, Bound b, Depth d, Move m, Value ev, uint8_t generation8) {
+  Key k, Value v, bool pv, bool singular, Bound b, Depth d, Move m, Value ev, uint8_t generation8) {
 
     // Preserve any existing move for the same position
     if (m || uint16_t(k) != key16)
@@ -48,7 +48,7 @@ void TTEntry::save(
 
         key16     = uint16_t(k);
         depth8    = uint8_t(d - DEPTH_OFFSET);
-        genBound8 = uint8_t(generation8 | uint8_t(pv) << 2 | b);
+        genBound8 = uint8_t(generation8 | uint8_t(pv) << 2 | uint8_t(singular) << 3 | b);
         value16   = int16_t(v);
         eval16    = int16_t(ev);
     }
@@ -129,8 +129,8 @@ TTEntry* TranspositionTable::probe(const Key key, bool& found) const {
     // Find an entry to be replaced according to the replacement strategy
     TTEntry* replace = tte;
     for (int i = 1; i < ClusterSize; ++i)
-        if (replace->depth8 - replace->relative_age(generation8) * 2
-            > tte[i].depth8 - tte[i].relative_age(generation8) * 2)
+        if (replace->depth8 - replace->relative_age(generation8)
+            > tte[i].depth8 - tte[i].relative_age(generation8))
             replace = &tte[i];
 
     return found = false, replace;
