@@ -1071,7 +1071,7 @@ moves_loop:  // When in check, search starts here
                     if (!ttCapture)
                         update_quiet_histories(pos, ss, *this, ttMove, -stat_malus(depth));
 
-                    return singularBeta;
+                    return std::abs(singularBeta < VALUE_TB_WIN_IN_MAX_PLY) ? (singularBeta + beta) / 2 : singularBeta;
                 }
 
                 // Negative extensions
