@@ -1134,12 +1134,11 @@ moves_loop:  // When in check, search starts here
             r--;
 
         // Increase reduction if next ply has a lot of fail high (~5 Elo)
-        if ((ss + 1)->cutoffCnt > 3)
-            r++;
+        r += ((ss + 1)->cutoffCnt > 3) + ((ss + 1)->cutoffCnt > 6);
 
         // Set reduction to 0 for first picked move (ttMove) (~2 Elo)
         // Nullifies all previous reduction adjustments to ttMove and leaves only history to do them
-        else if (move == ttMove)
+        if (move == ttMove && (ss + 1)->cutoffCnt <= 3)
             r = 0;
 
         ss->statScore = 2 * thisThread->mainHistory[us][move.from_to()]
