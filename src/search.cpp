@@ -1346,8 +1346,9 @@ moves_loop:  // When in check, search starts here
 
     // Write gathered information in transposition table
     // Static evaluation is saved as it was before correction history
+    Value newTtValue = bestValue == VALUE_NONE || ttValue == VALUE_NONE || std::abs(bestValue) >= VALUE_TB_WIN_IN_MAX_PLY || std::abs(ttValue) >= VALUE_TB_WIN_IN_MAX_PLY ? bestValue : (90 * bestValue + 10 * ttValue) / 100;
     if (!excludedMove && !(rootNode && thisThread->pvIdx))
-        tte->save(posKey, value_to_tt(bestValue, ss->ply), ss->ttPv,
+        tte->save(posKey, value_to_tt(newTtValue, ss->ply), ss->ttPv,
                   bestValue >= beta    ? BOUND_LOWER
                   : PvNode && bestMove ? BOUND_EXACT
                                        : BOUND_UPPER,
