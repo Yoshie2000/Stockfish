@@ -550,7 +550,7 @@ Value Search::Worker::search(
     Key      posKey;
     Move     ttMove, move, excludedMove, bestMove;
     Depth    extension, newDepth;
-    Value    bestValue, value, ttValue, eval, maxValue, probCutBeta, singularValue;
+    Value    bestValue, value, ttValue, maxValue, probCutBeta, singularValue;
     bool     givesCheck, improving, priorCapture, opponentWorsening;
     bool     capture, moveCountPruning, ttCapture;
     Piece    movedPiece;
@@ -701,7 +701,7 @@ Value Search::Worker::search(
     if (ss->inCheck)
     {
         // Skip early pruning when in check
-        ss->staticEval = eval = VALUE_NONE;
+        ss->staticEval = VALUE_NONE;
         improving             = false;
         goto moves_loop;
     }
@@ -710,7 +710,7 @@ Value Search::Worker::search(
         // Providing the hint that this node's accumulator will be used often
         // brings significant Elo gain (~13 Elo).
         Eval::NNUE::hint_common_parent_position(pos, networks[numaAccessToken], refreshTable);
-        unadjustedStaticEval = eval = ss->staticEval;
+        unadjustedStaticEval = ss->staticEval;
     }
     else if (ss->ttHit)
     {
@@ -722,17 +722,13 @@ Value Search::Worker::search(
         else if (PvNode)
             Eval::NNUE::hint_common_parent_position(pos, networks[numaAccessToken], refreshTable);
 
-        ss->staticEval = eval = to_corrected_static_eval(unadjustedStaticEval, *thisThread, pos);
-
-        // ttValue can be used as a better position evaluation (~7 Elo)
-        if (ttValue != VALUE_NONE && (tte->bound() & (ttValue > eval ? BOUND_LOWER : BOUND_UPPER)))
-            eval = ttValue;
+        ss->staticEval = to_corrected_static_eval(unadjustedStaticEval, *thisThread, pos);
     }
     else
     {
         unadjustedStaticEval =
           evaluate(networks[numaAccessToken], pos, refreshTable, thisThread->optimism[us]);
-        ss->staticEval = eval = to_corrected_static_eval(unadjustedStaticEval, *thisThread, pos);
+        ss->staticEval = to_corrected_static_eval(unadjustedStaticEval, *thisThread, pos);
 
         // Static evaluation is saved as it was before adjustment by correction history
         tte->save(posKey, VALUE_NONE, ss->ttPv, BOUND_NONE, DEPTH_UNSEARCHED, Move::none(),
@@ -764,7 +760,7 @@ Value Search::Worker::search(
     // Step 7. Razoring (~1 Elo)
     // If eval is really low check with qsearch if it can exceed alpha, if it can't,
     // return a fail low.
-    if (eval < alpha - 501 - 305 * depth * depth)
+    if (ss->staticEval < alpha - 501 - 305 * depth * depth)
     {
         value = qsearch<NonPV>(pos, ss, alpha - 1, alpha);
         if (value < alpha)
@@ -774,22 +770,22 @@ Value Search::Worker::search(
     // Step 8. Futility pruning: child node (~40 Elo)
     // The depth condition is important for mate finding.
     if (!ss->ttPv && depth < 12
-        && eval - futility_margin(depth, cutNode && !ss->ttHit, improving, opponentWorsening)
+        && ss->staticEval - futility_margin(depth, cutNode && !ss->ttHit, improving, opponentWorsening)
                - (ss - 1)->statScore / 248
              >= beta
-        && eval >= beta && eval < VALUE_TB_WIN_IN_MAX_PLY && (!ttMove || ttCapture))
-        return beta > VALUE_TB_LOSS_IN_MAX_PLY ? beta + (eval - beta) / 3 : eval;
+        && ss->staticEval >= beta && ss->staticEval < VALUE_TB_WIN_IN_MAX_PLY && (!ttMove || ttCapture))
+        return beta > VALUE_TB_LOSS_IN_MAX_PLY ? beta + (ss->staticEval - beta) / 3 : ss->staticEval;
 
     // Step 9. Null move search with verification search (~35 Elo)
     if (!PvNode && (ss - 1)->currentMove != Move::null() && (ss - 1)->statScore < 13999
-        && eval >= beta && ss->staticEval >= beta - 21 * depth + 390 && !excludedMove
+        && ss->staticEval >= beta && ss->staticEval >= beta - 21 * depth + 390 && !excludedMove
         && pos.non_pawn_material(us) && ss->ply >= thisThread->nmpMinPly
         && beta > VALUE_TB_LOSS_IN_MAX_PLY)
     {
-        assert(eval - beta >= 0);
+        assert(ss->staticEval - beta >= 0);
 
         // Null move dynamic reduction based on depth and eval
-        Depth R = std::min(int(eval - beta) / 177, 6) + depth / 3 + 5;
+        Depth R = std::min(int(ss->staticEval - beta) / 177, 6) + depth / 3 + 5;
 
         ss->currentMove         = Move::null();
         ss->continuationHistory = &thisThread->continuationHistory[0][0][NO_PIECE][0];
