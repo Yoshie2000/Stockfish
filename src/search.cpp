@@ -1151,7 +1151,7 @@ moves_loop:  // When in check, search starts here
         if (ttCapture)
             r++;
         
-        if (unadjustedStaticEval < alpha && ss->staticEval > beta)
+        if (unadjustedStaticEval + 15 < alpha && ss->staticEval > beta)
             r++;
 
         // Increase reduction if next ply has a lot of fail high (~5 Elo)
