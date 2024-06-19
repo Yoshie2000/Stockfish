@@ -299,65 +299,96 @@ void ThreadPool::start_thinking(const OptionsMap&  options,
 Thread* ThreadPool::get_best_thread() const {
 
     Thread* bestThread = threads.front().get();
+    size_t  bestRootMoveIndex = 0;
     Value   minScore   = VALUE_NONE;
 
     std::unordered_map<Move, int64_t, Move::MoveHash> votes(
       2 * std::min(size(), bestThread->worker->rootMoves.size()));
 
     // Find the minimum score of all threads
-    for (auto&& th : threads)
-        minScore = std::min(minScore, th->worker->rootMoves[0].score);
+    for (auto&& th : threads) {
+        for (auto& rm : th->worker->rootMoves) {
+            if (rm.score == -VALUE_INFINITE)
+                continue;
+            minScore = std::min(minScore, rm.score);
+        }
+    }
 
     // Vote according to score and depth, and select the best thread
-    auto thread_voting_value = [minScore](Thread* th) {
-        return (th->worker->rootMoves[0].score - minScore + 14) * int(th->worker->completedDepth);
+    auto thread_voting_value = [minScore](const Search::RootMove& rm, const Depth depth) {
+        return (rm.score - minScore + 14) * depth;
     };
 
-    for (auto&& th : threads)
-        votes[th->worker->rootMoves[0].pv[0]] += thread_voting_value(th.get());
+    for (auto&& th : threads) {
+        for (auto& rm : th->worker->rootMoves) {
+            if (rm.score == -VALUE_INFINITE)
+                continue;
+            votes[rm.pv[0]] += thread_voting_value(rm, th.get()->worker->completedDepth);
+        }
+    }
 
     for (auto&& th : threads)
     {
-        const auto bestThreadScore = bestThread->worker->rootMoves[0].score;
-        const auto newThreadScore  = th->worker->rootMoves[0].score;
+        for (size_t rootMoveIndex = 0; rootMoveIndex < th->worker->rootMoves.size(); rootMoveIndex++) {
+            const auto& bestRootMove = bestThread->worker->rootMoves[bestRootMoveIndex];
+            const auto& rootMove = th->worker->rootMoves[rootMoveIndex];
 
-        const auto& bestThreadPV = bestThread->worker->rootMoves[0].pv;
-        const auto& newThreadPV  = th->worker->rootMoves[0].pv;
+            if (rootMove.score == -VALUE_INFINITE)
+                continue;
+            
+            const auto bestThreadDepth = bestThread->worker->completedDepth;
+            const auto newThreadDepth = th->worker->completedDepth;
 
-        const auto bestThreadMoveVote = votes[bestThreadPV[0]];
-        const auto newThreadMoveVote  = votes[newThreadPV[0]];
+            const auto bestThreadScore = bestRootMove.score;
+            const auto newThreadScore  = rootMove.score;
 
-        const bool bestThreadInProvenWin = bestThreadScore >= VALUE_TB_WIN_IN_MAX_PLY;
-        const bool newThreadInProvenWin  = newThreadScore >= VALUE_TB_WIN_IN_MAX_PLY;
+            const auto& bestThreadPV = bestRootMove.pv;
+            const auto& newThreadPV  = rootMove.pv;
 
-        const bool bestThreadInProvenLoss =
-          bestThreadScore != -VALUE_INFINITE && bestThreadScore <= VALUE_TB_LOSS_IN_MAX_PLY;
-        const bool newThreadInProvenLoss =
-          newThreadScore != -VALUE_INFINITE && newThreadScore <= VALUE_TB_LOSS_IN_MAX_PLY;
+            const auto bestThreadMoveVote = votes[bestThreadPV[0]];
+            const auto newThreadMoveVote  = votes[newThreadPV[0]];
 
-        // Note that we make sure not to pick a thread with truncated-PV for better viewer experience.
-        const bool betterVotingValue =
-          thread_voting_value(th.get()) * int(newThreadPV.size() > 2)
-          > thread_voting_value(bestThread) * int(bestThreadPV.size() > 2);
+            const bool bestThreadInProvenWin = bestThreadScore >= VALUE_TB_WIN_IN_MAX_PLY;
+            const bool newThreadInProvenWin  = newThreadScore >= VALUE_TB_WIN_IN_MAX_PLY;
 
-        if (bestThreadInProvenWin)
-        {
-            // Make sure we pick the shortest mate / TB conversion
-            if (newThreadScore > bestThreadScore)
+            const bool bestThreadInProvenLoss =
+            bestThreadScore != -VALUE_INFINITE && bestThreadScore <= VALUE_TB_LOSS_IN_MAX_PLY;
+            const bool newThreadInProvenLoss =
+            newThreadScore != -VALUE_INFINITE && newThreadScore <= VALUE_TB_LOSS_IN_MAX_PLY;
+
+            // Note that we make sure not to pick a thread with truncated-PV for better viewer experience.
+            const bool betterVotingValue =
+                thread_voting_value(rootMove, newThreadDepth) * int(newThreadPV.size() > 2)
+                > thread_voting_value(bestRootMove, bestThreadDepth) * int(bestThreadPV.size() > 2);
+
+            if (bestThreadInProvenWin)
+            {
+                // Make sure we pick the shortest mate / TB conversion
+                if (newThreadScore > bestThreadScore) {
+                    bestThread = th.get();
+                    bestRootMoveIndex = rootMoveIndex;
+                }
+            }
+            else if (bestThreadInProvenLoss)
+            {
+                // Make sure we pick the shortest mated / TB conversion
+                if (newThreadInProvenLoss && newThreadScore < bestThreadScore) {
+                    bestThread = th.get();
+                    bestRootMoveIndex = rootMoveIndex;
+                }
+            }
+            else if (newThreadInProvenWin || newThreadInProvenLoss
+                    || (newThreadScore > VALUE_TB_LOSS_IN_MAX_PLY
+                        && (newThreadMoveVote > bestThreadMoveVote
+                            || (newThreadMoveVote == bestThreadMoveVote && betterVotingValue)))) {
                 bestThread = th.get();
+                bestRootMoveIndex = rootMoveIndex;
+            }
         }
-        else if (bestThreadInProvenLoss)
-        {
-            // Make sure we pick the shortest mated / TB conversion
-            if (newThreadInProvenLoss && newThreadScore < bestThreadScore)
-                bestThread = th.get();
-        }
-        else if (newThreadInProvenWin || newThreadInProvenLoss
-                 || (newThreadScore > VALUE_TB_LOSS_IN_MAX_PLY
-                     && (newThreadMoveVote > bestThreadMoveVote
-                         || (newThreadMoveVote == bestThreadMoveVote && betterVotingValue))))
-            bestThread = th.get();
     }
+
+    if (bestRootMoveIndex)
+        std::swap(bestThread->worker->rootMoves[0], bestThread->worker->rootMoves[bestRootMoveIndex]);
 
     return bestThread;
 }
