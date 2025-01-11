@@ -740,9 +740,9 @@ Value Search::Worker::search(
         ss->staticEval = eval = to_corrected_static_eval(unadjustedStaticEval, correctionValue);
 
         // ttValue can be used as a better position evaluation (~7 Elo)
-        if (is_valid(ttData.value)
-            && (ttData.bound & (ttData.value > eval ? BOUND_LOWER : BOUND_UPPER)))
-            eval = ttData.value;
+//        if (is_valid(ttData.value)
+//            && (ttData.bound & (ttData.value > eval ? BOUND_LOWER : BOUND_UPPER)))
+//            eval = ttData.value;
     }
     else
     {
@@ -1549,9 +1549,9 @@ Value Search::Worker::qsearch(Position& pos, Stack* ss, Value alpha, Value beta)
               to_corrected_static_eval(unadjustedStaticEval, correctionValue);
 
             // ttValue can be used as a better position evaluation (~13 Elo)
-            if (is_valid(ttData.value) && !is_decisive(ttData.value)
-                && (ttData.bound & (ttData.value > bestValue ? BOUND_LOWER : BOUND_UPPER)))
-                bestValue = ttData.value;
+//            if (is_valid(ttData.value) && !is_decisive(ttData.value)
+//                && (ttData.bound & (ttData.value > bestValue ? BOUND_LOWER : BOUND_UPPER)))
+//                bestValue = ttData.value;
         }
         else
         {
